@@ -332,13 +332,41 @@ def run(as_of):
 
 def ingest_redemptions(src):
     """Sync the Redemptions sheet (File -> Share -> Publish to web -> CSV) into data/input/redemptions.csv.
-    Rejected rows are kept so they are ignored (refunded) by run()."""
+    Fails loudly on a bad link: silently reading "no redemptions" would publish balances that ignore spent Miles."""
+    import sys
+    import urllib.error
+
+    def die(msg):
+        print(f"ERROR reading redemptions: {msg}", file=sys.stderr)
+        sys.exit(2)
+
     if src.startswith("http"):
-        with urllib.request.urlopen(src, timeout=60) as r:
-            rows = list(csv.DictReader(io.StringIO(r.read().decode("utf-8-sig"))))
+        text, last = None, None
+        for attempt in range(3):
+            try:
+                req = urllib.request.Request(src, headers={"User-Agent": "Mozilla/5.0 (miles-build)"})
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    text = r.read().decode("utf-8-sig")
+                break
+            except urllib.error.HTTPError as e:
+                last = f"HTTP {e.code} from the redemptions link"
+                if e.code in (400, 401, 403, 404):
+                    break
+            except Exception as e:  # network blip: retry
+                last = f"{type(e).__name__}: {e}"
+        if text is None:
+            die(f"{last}. Check MILES_REDEEMED_CSV: it must be the Google Sheets 'Publish to web' link for the "
+                f"Redemptions tab, format CSV.")
     else:
-        rows = read_csv(src)
-    out = [{"learner_id": r["learner_id"], "reward_id": r["reward_id"], "miles_cost": r["miles_cost"],
+        text = Path(src).read_text(encoding="utf-8-sig") if Path(src).exists() else ""
+    rows = list(csv.DictReader(io.StringIO(text)))
+    fields = [f.strip() for f in next(csv.reader(io.StringIO(text)), [])]
+    if "learner_id" not in fields or "reward_id" not in fields:
+        looks_html = src.startswith("http") and "<html" in (text or "").lower()
+        die("the file has no 'learner_id' / 'reward_id' columns" +
+            (" (it is an HTML page, not a CSV: re-publish the Redemptions tab as CSV)" if looks_html else
+             " (is it the Redemptions tab, and has setup() been run so the header row exists?)"))
+    out = [{"learner_id": r["learner_id"], "reward_id": r["reward_id"], "miles_cost": r.get("miles_cost", ""),
             "status": (r.get("status") or "requested").strip().lower(), "date": (r.get("timestamp") or "")[:10]}
            for r in rows if r.get("learner_id") and r.get("reward_id")]
     write_csv(IN / "redemptions.csv", out, ["learner_id", "reward_id", "miles_cost", "status", "date"])

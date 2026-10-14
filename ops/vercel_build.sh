@@ -8,6 +8,14 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+echo "build env: REDEEM_SECRET=$([ -n "${REDEEM_SECRET:-}" ] && echo set || echo MISSING)" \
+     "MILES_REDEEM_ENDPOINT=$([ -n "${MILES_REDEEM_ENDPOINT:-}" ] && echo set || echo not-set)" \
+     "MILES_REDEEMED_CSV=$([ -n "${MILES_REDEEMED_CSV:-}" ] && echo set || echo not-set)"
+if [ -n "${MILES_REDEEM_ENDPOINT:-}" ] && [ -z "${REDEEM_SECRET:-}" ]; then
+  echo "ERROR: MILES_REDEEM_ENDPOINT is set but REDEEM_SECRET is empty. Add REDEEM_SECRET in Vercel -> Settings -> Environment Variables (Production), then redeploy." >&2
+  exit 1
+fi
+
 command -v python3 >/dev/null || { echo "python3 not available in this build image"; exit 1; }
 METABASE_DAILY="${METABASE_DAILY:-https://metabase.masaischool.com/public/question/baf81ac4-fa74-4272-b341-09c097f06ec2.csv}"
 
