@@ -1,4 +1,8 @@
 {
+  "framework": null,
+  "installCommand": "echo no-install",
+  "buildCommand": "bash ops/vercel_build.sh",
+  "outputDirectory": "webapp/dist",
   "cleanUrls": true,
   "headers": [
     {

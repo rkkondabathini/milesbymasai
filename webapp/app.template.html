@@ -30,6 +30,8 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .alert.ok .ic{color:#6ee7a0}.alert.ok .ic .i{fill:#6ee7a0}
 .alert .go{margin-left:auto;opacity:.8;width:18px;height:18px}
 .top{gap:12px}
+.ubar{background:#14161f;color:#e9eaee;font-size:13px;text-align:center;padding:9px 16px;letter-spacing:.01em}
+.ubar b{color:#fff;font-weight:600}
 .sob{display:inline-flex;align-items:center;gap:8px;order:2;margin-left:auto;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:12px;padding:10px 14px;font:600 14px var(--font);cursor:pointer}
 .sob .i{width:16px;height:16px}
 .sob:hover{background:rgba(0,0,0,.4)}
@@ -460,7 +462,7 @@ function loginView(msg) {
       <div class="fld">${ic("mail")}<input id="e" name="email" type="email" autocomplete="email" required placeholder="Registered email id" aria-label="Registered email id"></div>
       <button id="go" type="submit">View my Miles</button>
       <div class="err" id="err">${esc(msg || "")}</div>
-      <div class="fine">Use the mobile number and email you registered with Masai. Only you can open your data.</div>
+      <div class="fine">Use the mobile number and email you registered with Masai. Only you can open your data. Miles refresh once a day, around 9 AM.</div>
     </form></section>
     <aside class="lg-l">
       <div class="logo"><span class="m">miles</span><span class="b">by masai</span></div>
@@ -579,6 +581,7 @@ function dashboard(st) {
 
   $app.innerHTML = `
   <div id="root">
+  <div class="ubar">Miles refresh <b>once a day, around 9 AM</b>. Includes activity up to <b>${esc(dayFmt(d.data_as_of))}</b>; today's lectures show up tomorrow.</div>
   <header class="hd"><svg class="wave" viewBox="0 0 800 140" preserveAspectRatio="none" aria-hidden="true"><path d="M0 140 C140 30 340 20 560 140 Z" fill="rgba(48,8,16,.55)"/><path d="M0 140 C90 70 220 60 360 140 Z" fill="rgba(30,6,12,.5)"/></svg><div class="w" style="position:relative">
     <div class="top">
       <div class="logo"><span class="m">miles</span><span class="b">by masai</span></div>

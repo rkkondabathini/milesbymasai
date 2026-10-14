@@ -1,28 +1,19 @@
-name: Refresh Miles and deploy
+name: Daily Miles refresh
 
-# Manual for now. To run daily, add:  schedule: [{ cron: "30 1 * * *" }]   (07:00 IST)
+# Vercel rebuilds the site (Metabase -> Miles -> encrypted page) whenever its deploy hook is called.
+# 03:30 UTC = 09:00 IST. GitHub may start scheduled runs a few minutes late.
 on:
+  schedule:
+    - cron: "30 3 * * *"
   workflow_dispatch:
 
-concurrency: miles-deploy
-
 jobs:
-  deploy:
+  refresh:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Ingest, recompute, build, deploy
-        run: ./ops/daily_refresh.sh
+      - name: Trigger Vercel build
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          REDEEM_SECRET: ${{ secrets.REDEEM_SECRET }}
-          MILES_REDEEM_ENDPOINT: ${{ secrets.MILES_REDEEM_ENDPOINT }}
-          MILES_REDEEMED_CSV: ${{ secrets.MILES_REDEEMED_CSV }}
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then echo "VERCEL_DEPLOY_HOOK secret is not set"; exit 1; fi
+          curl -fsS -X POST "$HOOK"

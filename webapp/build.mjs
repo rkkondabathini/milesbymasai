@@ -14,6 +14,10 @@ const ITER = 150000;
 // The same secret goes into the Apps Script (Script Properties -> REDEEM_SECRET).
 const secretFile = join(here, ".redeem_secret");
 let REDEEM_SECRET = process.env.REDEEM_SECRET || (existsSync(secretFile) ? readFileSync(secretFile, "utf8").trim() : "");
+if (!REDEEM_SECRET && process.env.MILES_REDEEM_ENDPOINT) {
+  console.error("MILES_REDEEM_ENDPOINT is set but REDEEM_SECRET is not: tokens would be signed with a throw-away key.");
+  process.exit(1);
+}
 if (!REDEEM_SECRET) { REDEEM_SECRET = randomBytes(32).toString("hex"); writeFileSync(secretFile, REDEEM_SECRET + "\n"); console.log("created webapp/.redeem_secret"); }
 const sign = (rid, asOf, balance) => createHmac("sha256", REDEEM_SECRET).update(`${rid}|${asOf}|${balance}`).digest("hex");
 const REDEEM_ENDPOINT = process.env.MILES_REDEEM_ENDPOINT || "";
@@ -43,7 +47,7 @@ try {
     if (o.pc_phone) support.push({ batch: o.batch_name, name: o.pc_name, phone: o.pc_phone });
   }
 } catch {}
-const blob = { salt, iter: ITER, as_of: src.as_of, rewards: src.rewards, rates: src.rates,
+const blob = { salt, iter: ITER, built_at: new Date().toISOString(), as_of: src.as_of, rewards: src.rewards, rates: src.rates,
                threshold: src.threshold, multipliers: src.multipliers, faq, support, students };
 const tpl = readFileSync(join(here, "app.template.html"), "utf8")
   .replace("__REDEEM_ENDPOINT__", REDEEM_ENDPOINT).replace("__REDEEM_FORM_URL__", REDEEM_FORM_URL);
