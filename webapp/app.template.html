@@ -51,6 +51,8 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .ubar b{color:#fff;font-weight:600}
 .sob{display:inline-flex;align-items:center;gap:6px;order:2;margin-left:auto;height:auto;padding:4px 2px;background:none;border:0;color:rgba(255,255,255,.72);font:500 13px var(--font);cursor:pointer;white-space:nowrap}
 .sob .i{width:14px;height:14px}
+.lnk2{background:none;border:0;color:#b01c2e;font:600 14px var(--font);cursor:pointer;padding:0}
+.lnk2:hover{text-decoration:underline}
 .sob:hover{color:#fff;text-decoration:underline;text-underline-offset:3px}
 .trc{display:contents}
 .top .logo{order:1}.top .alert{order:3;flex-basis:100%;max-width:none}
@@ -283,6 +285,54 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .stn{margin:14px 2px 0;font-size:13px;color:var(--mut);text-align:center}
 .jump{display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:#fff;color:#b01c2e;border:0;border-radius:12px;padding:10px 16px;font:700 14px var(--font);cursor:pointer}
 .jump .i{width:16px;height:16px}
+/* how it works modal + consent */
+.jrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.jump.s{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3);margin-top:0}
+.jump.p{margin-top:0}
+.hw .tb{display:flex;gap:6px;padding:12px 18px 0;background:#fff;flex:none;border-bottom:1px solid var(--line)}
+.hw .tb button{border:0;background:none;font:600 15px var(--font);padding:10px 14px;color:var(--mut);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.hw .tb button.on{color:#b01c2e;border-bottom-color:#e0243e}
+.hwb{flex:1;overflow:auto;padding:18px 20px 28px;min-height:0;background:#fff}
+.hwb h3{margin:22px 0 10px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.hwb h3:first-child{margin-top:0}
+.rg2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:700px){.rg2{grid-template-columns:repeat(4,1fr)}}
+.rt2{border-radius:14px;padding:14px 10px;text-align:center;background:#f6f6f8}
+.rt2 .i{width:22px;height:22px;color:#e0243e}
+.rt2 b{display:block;font-size:26px;font-weight:600;margin-top:4px;line-height:1.1}
+.rt2 span{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+.rt2 em{display:block;font-style:normal;font-size:11px;color:#b01c2e;font-weight:600;margin-top:4px}
+.lr2{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-radius:12px;background:#f6f6f8;margin-bottom:8px;font-size:15px}
+.lr2 b{font-weight:600}
+.step{display:flex;gap:12px;margin-bottom:10px}
+.step .n{flex:none;width:30px;height:30px;border-radius:50%;background:#fdecef;color:#b01c2e;font-weight:700;display:flex;align-items:center;justify-content:center}
+.step p{margin:3px 0 0;font-size:14.5px}
+.ex{border:1.5px dashed #f3b8c1;border-radius:14px;padding:14px;background:#fffafb}
+.ex .row{display:flex;justify-content:space-between;padding:4px 0;font-size:14px}
+.ex .tot{border-top:1px solid #f3d3d8;margin-top:6px;padding-top:8px;font-weight:700}
+.ex .big{color:#b01c2e}
+.note2{margin-top:10px;font-size:13px;color:var(--mut)}
+.fgrp{margin:20px 0 8px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.fgrp:first-child{margin-top:0}
+.fq2{border:1px solid var(--line);border-radius:14px;margin-bottom:8px;background:#fff}
+.fq2 summary{list-style:none;cursor:pointer;padding:13px 16px;font-weight:600;font-size:15px;display:flex;justify-content:space-between;gap:12px}
+.fq2 summary::-webkit-details-marker{display:none}
+.fq2 summary:after{content:"+";font-size:20px;line-height:1;color:var(--mut)}
+.fq2[open] summary:after{content:"–"}
+.fq2[open]{border-color:#f3b8c1;background:#fffafb}
+.fq2 p{margin:0;padding:0 16px 14px;font-size:14.5px;line-height:1.55;color:#3b3f4c}
+.cons{display:flex;gap:10px;align-items:flex-start;margin:14px 0 4px;padding:12px;border-radius:12px;background:#f6f6f8;font-size:14px;line-height:1.45;cursor:pointer}
+.cons input{flex:none;width:20px;height:20px;margin-top:1px;accent-color:#d71f3a}
+.ph2{margin:12px 0 0}
+.ph2 label{display:block;font-size:12px;color:var(--mut);margin-bottom:4px}
+.ph2 input{width:100%;height:46px;border-radius:12px;border:1.5px solid #e4e6eb;padding:0 12px;font:400 15px var(--font)}
+.ph2 input:focus{outline:0;border-color:#e0243e}
+.dgb .acts .yes:disabled{opacity:.45;cursor:not-allowed}
+.scope{display:inline-flex;background:#f1f2f5;border-radius:99px;padding:3px}
+.scope button{border:0;background:none;font:600 13px var(--font);padding:6px 12px;border-radius:99px;color:var(--mut);cursor:pointer}
+.scope button.on{background:#e0243e;color:#fff}
+.lbh{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.pdi .bt{display:block;font-size:11px;color:var(--mut);font-weight:600;margin-top:-4px;margin-bottom:6px}
 /* ring legend + leaderboard */
 .rleg{display:flex;gap:16px;justify-content:center;margin-top:12px;font-size:13px;color:rgba(255,255,255,.85)}
 .rleg b{font-weight:600;color:#fff}
@@ -663,7 +713,8 @@ function dashboard(st) {
         <div class="rleg" id="rleg"></div>
         <div class="lvl"><span style="display:flex;color:${(TH[lvl.name] || { l: "#7ee2a8" }).l}">${ic(lvl.ic)}</span> Level ${li + 1} · ${lvl.name}</div>
         <div class="lvl-n">${nxtL ? fmt(nxtL.at - earned) + " Miles to <span style=\"display:flex;color:" + TH[nxtL.name].l + "\">" + ic(nxtL.ic) + "</span><b style=\"font-weight:600\">" + nxtL.name + "</b>" : "Top level reached"}</div>
-        <button class="jump" id="jump" type="button">${ic("cart")} Rewards store</button></div>
+        <div class="jrow"><button class="jump p" id="jump" type="button">${ic("cart")} Rewards store</button>
+          <button class="jump s" id="hjump" type="button">${ic("book")} How to earn</button></div></div>
     
       <div class="ph"></div>
     </div>
@@ -678,7 +729,7 @@ function dashboard(st) {
           <div class="pips">${mults.map((m, i) => `<i class="${i < streak ? "on" : ""}"></i>`).join("")}</div>
           <div class="c">${metNow ? "Boost active this week" : "Earn more Miles this week"}</div></div>
       </div>
-      <section class="card o5 g-path"><div class="ch"><h2>Your Learning Path</h2></div>
+      <section class="card o5 g-path"><div class="ch"><h2>Your Learning Path</h2><button class="lnk2" id="hlink" type="button">How to earn Miles</button></div>
         <div class="sub">Complete these to earn Miles and level up</div>
         ${pathItems}${assignRow}${!pathItems && !assignRow ? '<div class="say">You are all caught up. New lectures will show up here.</div>' : ""}
       </section>
@@ -731,6 +782,11 @@ function dashboard(st) {
       <button class="mx" id="mx" type="button" aria-label="Close">${ic("x")}</button></div>
     <div class="stb"><div class="flt" id="flt">${[["all", "All"], ["open", "Unlocked"], ["Career", "Career"], ["Learn", "Learn"], ["Perks", "Perks & merch"]].map(([k, l], i) => `<button type="button" data-f="${k}" class="${i === 0 ? "on" : ""}">${l}</button>`).join("")}</div>
       <div class="scr"><div class="pg" id="pg"></div><div id="reqs"></div></div></div></div></div>
+  <div class="mdl hw" id="hmd"><div class="mbg" id="hbg"></div><div class="mpn" role="dialog" aria-label="How Miles work">
+    <div class="sthd"><div style="position:relative;z-index:1"><small>Miles by Masai</small><h2>How Miles work</h2><p>Earn on what you already do. Spend on rewards.</p></div>
+      <button class="mx" id="hx" type="button" aria-label="Close">${ic("x")}</button></div>
+    <div class="tb"><button type="button" data-h="earn" class="on">How to earn</button><button type="button" data-h="faq">FAQ</button></div>
+    <div class="hwb" id="hwb"></div></div></div>
   <div class="dlg" id="dlg"></div>
   </div>`;
 
@@ -796,18 +852,25 @@ function dashboard(st) {
         <p class="msg">About ${Math.ceil(gap / 200)} live lectures or ${Math.ceil(gap / 100)} practice assignments away.</p>${closeBtn}`); bindClose(); return;
     }
     const live = !!REDEEM_ENDPOINT;
+    const consentText = `I confirm I want to redeem "${x.name}" for ${fmt(x.cost)} Miles. The Miles will be deducted from my balance and this request cannot be undone.`;
     dlgShell("", ic0, x.name, `${fmt(x.cost)} Miles`, `<div class="kv"><span>Your Miles</span><b>${fmt(sp)}</b></div><div class="kv"><span>This reward</span><b class="neg">− ${fmt(x.cost)}</b></div>
       <div class="kv"><span>Left after</span><b>${fmt(sp - x.cost)}</b></div>
-      <p class="msg">${live ? "Miles are deducted from your balance and the team reaches out to schedule or activate your reward." : "Redemption inside the dashboard is not switched on yet."}${!live && REDEEM_FORM_URL ? " Use the redemption form instead." : ""}</p>
+      ${live ? `<div class="ph2"><label for="dph">Best number for the team to reach you</label><input id="dph" type="tel" inputmode="tel" value="${esc((st.contact || {}).phone || "")}" placeholder="Phone number"></div>
+        <label class="cons"><input type="checkbox" id="dck"><span>${esc(consentText)}</span></label>`
+        : `<p class="msg">Redemption inside the dashboard is not switched on yet.${REDEEM_FORM_URL ? " Use the redemption form instead." : ""}</p>`}
       <div class="err" id="derr"></div>
-      <div class="acts"><button class="no" type="button" id="dno">Cancel</button>${live ? `<button class="yes" type="button" id="dyes">Confirm redeem</button>` : REDEEM_FORM_URL ? `<a class="yes" href="${esc(REDEEM_FORM_URL)}" target="_blank" rel="noopener">Open form</a>` : ""}</div>`);
+      <div class="acts"><button class="no" type="button" id="dno">Cancel</button>${live ? `<button class="yes" type="button" id="dyes" disabled>Confirm redeem</button>` : REDEEM_FORM_URL ? `<a class="yes" href="${esc(REDEEM_FORM_URL)}" target="_blank" rel="noopener">Open form</a>` : ""}</div>`);
     bindClose();
     const yes = document.getElementById("dyes"); if (!yes) return;
+    const ck = document.getElementById("dck"), ph = document.getElementById("dph");
+    const ready = () => { yes.disabled = !(ck.checked && ph.value.replace(/\D/g, "").length >= 10); };
+    ck.addEventListener("change", ready); ph.addEventListener("input", ready);
     yes.addEventListener("click", async () => {
       yes.disabled = true; yes.textContent = "Sending…"; document.getElementById("derr").textContent = "";
       const body = { request_id: (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random()), rid: st.rid, tok: st.tok,
         as_of: d.data_as_of, balance: d.current_balance, reward_id: x.reward_id, reward_name: x.name,
-        name: d.name, email: (st.contact || {}).email, phone: (st.contact || {}).phone, batch: d.batch };
+        name: d.name, email: (st.contact || {}).email, phone: (st.contact || {}).phone, batch: d.batch,
+        confirmed: true, confirmation_text: consentText, contact_phone: ph.value.trim() };
       try {
         const res = await fetch(REDEEM_ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) });
         const j = await res.json();
@@ -821,6 +884,54 @@ function dashboard(st) {
       }
     });
   };
+
+  // ---- how Miles work (earn + FAQ)
+  const hmd = document.getElementById("hmd"), hwb = document.getElementById("hwb");
+  const R = BLOB.rates, MU = BLOB.multipliers;
+  const earnHtml = () => `
+    <h3>Lectures</h3>
+    <div class="rg2">
+      <div class="rt2">${ic("mic")}<b>${fmt(R.mandatory_live)}</b><span>Mandatory · live</span></div>
+      <div class="rt2">${ic("book")}<b>${fmt(R.mandatory_recorded)}</b><span>Mandatory · recording</span></div>
+      <div class="rt2">${ic("mic")}<b>${fmt(R.nonmandatory_live)}</b><span>Other · live</span></div>
+      <div class="rt2">${ic("book")}<b>${fmt(R.nonmandatory_recorded)}</b><span>Other · recording</span></div>
+    </div>
+    <p class="note2">Each lecture earns Miles once, at the live rate if you attended live. Recordings count when watched within the attendance window.</p>
+    <h3>Assignments and evaluations</h3>
+    <div class="rg2">
+      <div class="rt2">${ic("pen")}<b>${fmt(R.practice_assignment)}</b><span>Practice assignment</span></div>
+      <div class="rt2">${ic("chk")}<b>${fmt(R.graded_assignment)}</b><span>Graded assignment</span></div>
+      <div class="rt2">${ic("target")}<b>${fmt(R.graded_evaluation)}</b><span>Graded evaluation</span></div>
+      <div class="rt2">${ic("flag")}<b>${fmt(R.mock_evaluation)}</b><span>Mock evaluation</span></div>
+    </div>
+    <p class="note2">Miles are for submitting or taking them, whatever your score.</p>
+    <h3>Weekly streak boost</h3>
+    <div class="step"><div class="n">1</div><p><b>Earn ${BLOB.threshold}+ Miles in a week</b> (Monday to Sunday) and that week counts toward your streak.</p></div>
+    <div class="step"><div class="n">2</div><p><b>Every streak week adds 0.1x</b> to the Miles you earn that week, up to <b>${MU[MU.length - 1]}x</b>.</p></div>
+    <div class="step"><div class="n">3</div><p><b>Miss a week</b> and the boost goes back to 1.0x. Miles already earned are never taken away.</p></div>
+    <div class="rg2" style="margin-top:6px">${MU.map((m, i) => `<div class="rt2"><b style="font-size:20px;color:#b01c2e">${m}x</b><span>Week ${i + 1}${i === MU.length - 1 ? "+" : ""}</span></div>`).join("")}</div>
+    <h3>Example: a Week 3 streak</h3>
+    <div class="ex">
+      <div class="row"><span>2 mandatory lectures, live</span><b>${fmt(2 * R.mandatory_live)}</b></div>
+      <div class="row"><span>1 other lecture, recording</span><b>${fmt(R.nonmandatory_recorded)}</b></div>
+      <div class="row"><span>1 practice assignment</span><b>${fmt(R.practice_assignment)}</b></div>
+      <div class="row"><span>1 graded assignment</span><b>${fmt(R.graded_assignment)}</b></div>
+      <div class="row tot"><span>Base Miles</span><b>${fmt(2 * R.mandatory_live + R.nonmandatory_recorded + R.practice_assignment + R.graded_assignment)}</b></div>
+      <div class="row"><span>× ${MU[2]}x boost</span><b class="big">${fmt(Math.round((2 * R.mandatory_live + R.nonmandatory_recorded + R.practice_assignment + R.graded_assignment) * MU[2]))} Miles</b></div>
+    </div>`;
+  const faqHtml = () => { let g = "", out = "";
+    (BLOB.faq || []).forEach((f) => { if (f.g && f.g !== g) { g = f.g; out += `<div class="fgrp">${esc(g)}</div>`; }
+      out += `<details class="fq2"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`; });
+    return out || '<p class="note2">No FAQ yet.</p>'; };
+  const openHow = (tab) => { hwb.innerHTML = tab === "faq" ? faqHtml() : earnHtml();
+    hmd.querySelectorAll(".tb button").forEach((b) => b.classList.toggle("on", b.dataset.h === (tab || "earn")));
+    hmd.classList.add("open"); document.body.style.overflow = "hidden"; hwb.scrollTop = 0; };
+  const closeHow = () => { hmd.classList.remove("open"); document.body.style.overflow = ""; };
+  hmd.querySelectorAll(".tb button").forEach((b) => b.addEventListener("click", () => openHow(b.dataset.h)));
+  document.getElementById("hx").addEventListener("click", closeHow);
+  document.getElementById("hbg").addEventListener("click", closeHow);
+  ["hjump", "hlink"].forEach((id) => { const el = document.getElementById(id); if (el) el.addEventListener("click", () => openHow("earn")); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && hmd.classList.contains("open")) closeHow(); });
 
   // ---- ring state (earned / used / available) and leaderboard
   const paintWallet = () => {
@@ -836,26 +947,31 @@ function dashboard(st) {
     const mb = document.getElementById("mbal"); if (mb) mb.textContent = fmt(avail);
   };
   const boardEl = document.getElementById("board");
-  let boardTab = "week";
+  let boardTab = "week", boardScope = "batch";
+  const capRank = (r) => (boardScope === "batch" && r > 99 ? "99+" : String(r));
   const paintBoard = () => {
-    const lb = st.leaderboard || {}, rk = st.rank || {};
+    const g = boardScope === "all";
+    const lb = (g ? st.leaderboard_global : st.leaderboard) || {}, rk = (g ? st.rank_global : st.rank) || {};
     const list = lb[boardTab] || [];
     const me = rk[boardTab];
     const inTop = list.some((x) => x.you);
     const ini = (n) => esc((n || "?").split(" ").map((w) => w[0]).join("").replace(/\./g, "").slice(0, 2).toUpperCase());
     const top3 = list.slice(0, 3), rest = list.slice(3);
     const order = top3.length === 3 ? [top3[1], top3[0], top3[2]] : top3;
+    const tag = (x) => (g && x.b ? `<span class="bt">${esc(x.b)}</span>` : "");
     const pod = order.map((x) => `<div class="pdi r${x.r} ${x.you ? "me" : ""}"><div class="av">${ini(x.n)}</div>
-      <div class="pn">${esc(x.n)}${x.you ? ' <em>You</em>' : ""}</div><div class="pm">${fmt(x.m)}</div>
+      <div class="pn">${esc(x.n)}${x.you ? ' <em>You</em>' : ""}</div>${tag(x)}<div class="pm">${fmt(x.m)}</div>
       <div class="pb2"><span>${x.r}</span></div></div>`).join("");
-    const row = (x) => `<div class="lr ${x.you ? "me" : ""}"><span class="rk">${x.r}</span><span class="nm">${esc(x.n)}${x.you ? " <em>You</em>" : ""}</span><span class="mm">${fmt(x.m)}</span></div>`;
-    boardEl.innerHTML = `<div class="ch"><h2>${ic("award")} Leaderboard</h2>
-      <div class="tabs"><button type="button" data-b="week" class="${boardTab === "week" ? "on" : ""}">This week</button><button type="button" data-b="all" class="${boardTab === "all" ? "on" : ""}">All time</button></div></div>
+    const row = (x) => `<div class="lr ${x.you ? "me" : ""}"><span class="rk">${x.r}</span><span class="nm">${esc(x.n)}${g && x.b ? ` <small style="color:#6b7280;font-weight:500">${esc(x.b)}</small>` : ""}${x.you ? " <em>You</em>" : ""}</span><span class="mm">${fmt(x.m)}</span></div>`;
+    boardEl.innerHTML = `<div class="ch"><h2>${ic("award")} Leaderboard</h2><div class="lbh">
+      <div class="scope"><button type="button" data-s="batch" class="${!g ? "on" : ""}">My batch</button><button type="button" data-s="all" class="${g ? "on" : ""}">All batches</button></div>
+      <div class="tabs"><button type="button" data-b="week" class="${boardTab === "week" ? "on" : ""}">This week</button><button type="button" data-b="all" class="${boardTab === "all" ? "on" : ""}">All time</button></div></div></div>
       ${list.length ? `<div class="lbw"><div class="pod">${pod}</div>
-        <div class="lrs">${rest.map(row).join("")}${me && !inTop ? `<div class="lr me"><span class="rk">${me.r}</span><span class="nm">${esc((d.name || "").split(" ")[0] || "You")} <em>You</em></span><span class="mm">${fmt(me.m)}</span></div>` : ""}
-          ${me ? `<div class="myr">Your rank <b>#${me.r}</b></div>` : ""}</div></div>`
+        <div class="lrs">${rest.map(row).join("")}${me && !inTop ? `<div class="lr me"><span class="rk">${esc(capRank(me.r))}</span><span class="nm">${esc((d.name || "").split(" ")[0] || "You")} <em>You</em></span><span class="mm">${fmt(me.m)}</span></div>` : ""}
+          ${me ? `<div class="myr">${g ? "Your overall rank" : "Your rank"} <b>#${esc(capRank(me.r))}</b></div>` : ""}</div></div>`
         : '<div class="say">No Miles on the board yet. Be the first.</div>'}`;
     boardEl.querySelectorAll("[data-b]").forEach((b) => b.addEventListener("click", () => { boardTab = b.dataset.b; paintBoard(); }));
+    boardEl.querySelectorAll("[data-s]").forEach((b) => b.addEventListener("click", () => { boardScope = b.dataset.s; paintBoard(); }));
   };
   paintWallet(); paintBoard();
   // sticky mini bar: slides in once the hero has scrolled away

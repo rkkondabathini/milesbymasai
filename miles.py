@@ -302,6 +302,25 @@ def run(as_of):
                     {"r": rank_of[t["learner_id"]], "n": short_name(t["name"]), "m": val(t), "you": t["learner_id"] == m["learner_id"]}
                     for t in top]
                 pl.setdefault("rank", {})[key] = {"r": rank_of[m["learner_id"]], "of": len(members), "m": val(m)}
+    # all-batches leaderboard: same format, ranked across every learner (actual rank numbers)
+    def batch_tag(b):
+        return (b or "").split("-")[0]
+
+    for key, val in (("all", lambda m: m["total_earned"]), ("week", lambda m: week_earned.get(m["learner_id"], 0))):
+        ranked = sorted(summary, key=lambda m: (-val(m), m["name"]))
+        rank_of, prev_v, prev_r = {}, None, 0
+        for i, m in enumerate(ranked, start=1):
+            v = val(m)
+            prev_r = prev_r if v == prev_v else i
+            prev_v = v
+            rank_of[m["learner_id"]] = prev_r
+        top = [m for m in ranked if val(m) > 0][:5]
+        board = [{"r": rank_of[t["learner_id"]], "n": short_name(t["name"]), "m": val(t), "b": batch_tag(t["batch"]),
+                  "id": t["learner_id"]} for t in top]
+        for m in summary:
+            pl = payloads[m["learner_id"]]
+            pl.setdefault("leaderboard_global", {})[key] = [{**{k: v for k, v in e.items() if k != "id"}, "you": e["id"] == m["learner_id"]} for e in board]
+            pl.setdefault("rank_global", {})[key] = {"r": rank_of[m["learner_id"]], "m": val(m)}
     write_csv(OUT / "student_weekly.csv", weekly, list(weekly[0]) if weekly else [])
     write_csv(OUT / "student_summary.csv", summary, list(summary[0]) if summary else [])
     write_csv(OUT / "comms_queue.csv", comms, list(comms[0]) if comms else [])

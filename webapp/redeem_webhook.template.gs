@@ -22,7 +22,8 @@
 const CATALOG = __CATALOG__;
 const SHEET_NAME = 'Redemptions';
 const HEADER = ['timestamp', 'request_id', 'learner_id', 'name', 'email', 'phone', 'batch', 'reward_id',
-                'reward_name', 'miles_cost', 'balance_at_request', 'status', 'data_as_of', 'handled_by', 'notes'];
+                'reward_name', 'miles_cost', 'balance_at_request', 'status', 'data_as_of', 'handled_by', 'notes',
+                'confirmed_at', 'confirmation', 'contact_phone'];
 const COL = { reqId: 1, learner: 2, name: 3, email: 4, phone: 5, batch: 6, reward: 7, rewardName: 8, cost: 9, status: 11, asOf: 12 };
 const STATUSES = ['requested', 'scheduled', 'completed', 'rejected'];
 
@@ -45,6 +46,8 @@ function doPost(e) {
     if (!b.tok || sign_([b.rid, b.as_of, b.balance].join('|')) !== b.tok) return out_({ ok: false, error: 'unauthorized' });
     const cost = CATALOG[b.reward_id];
     if (!cost) return out_({ ok: false, error: 'unknown_reward' });
+    // the learner must have ticked the confirmation box in the dialog; the exact wording is stored with the request
+    if (b.confirmed !== true || !b.confirmation_text) return out_({ ok: false, error: 'not_confirmed' });
 
     const sh = sheet_();
     if (sh.getLastRow() === 0) { sh.appendRow(HEADER); }
@@ -59,7 +62,8 @@ function doPost(e) {
     if (used + cost > Number(b.balance)) return out_({ ok: false, error: 'insufficient_balance' });
 
     sh.appendRow([new Date(), b.request_id, b.rid, b.name || '', b.email || '', b.phone || '', b.batch || '',
-                  b.reward_id, b.reward_name || '', cost, Number(b.balance), 'requested', b.as_of, '', '']);
+                  b.reward_id, b.reward_name || '', cost, Number(b.balance), 'requested', b.as_of, '', '',
+                  new Date(), String(b.confirmation_text).slice(0, 400), b.contact_phone || b.phone || '']);
     notifyNew_(b, cost);
     return out_({ ok: true, request_id: b.request_id });
   } catch (err) {
