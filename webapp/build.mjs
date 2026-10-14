@@ -13,14 +13,14 @@ const ITER = 150000;
 // redemption signing secret: env REDEEM_SECRET, else a local file created on first build.
 // The same secret goes into the Apps Script (Script Properties -> REDEEM_SECRET).
 const secretFile = join(here, ".redeem_secret");
-let REDEEM_SECRET = process.env.REDEEM_SECRET || (existsSync(secretFile) ? readFileSync(secretFile, "utf8").trim() : "");
+let REDEEM_SECRET = (process.env.REDEEM_SECRET || "").trim() || (existsSync(secretFile) ? readFileSync(secretFile, "utf8").trim() : "");
 if (!REDEEM_SECRET && process.env.MILES_REDEEM_ENDPOINT) {
   console.error("MILES_REDEEM_ENDPOINT is set but REDEEM_SECRET is not: tokens would be signed with a throw-away key.");
   process.exit(1);
 }
 if (!REDEEM_SECRET) { REDEEM_SECRET = randomBytes(32).toString("hex"); writeFileSync(secretFile, REDEEM_SECRET + "\n"); console.log("created webapp/.redeem_secret"); }
 const sign = (rid, asOf, balance) => createHmac("sha256", REDEEM_SECRET).update(`${rid}|${asOf}|${balance}`).digest("hex");
-const REDEEM_ENDPOINT = process.env.MILES_REDEEM_ENDPOINT || "";
+const REDEEM_ENDPOINT = (process.env.MILES_REDEEM_ENDPOINT || "").trim();
 const REDEEM_FORM_URL = process.env.MILES_REDEEM_FORM_URL || "";
 const salt = MilesAuth.b64(randomBytes(16));
 const students = {};
