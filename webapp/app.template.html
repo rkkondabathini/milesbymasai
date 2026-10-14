@@ -30,12 +30,26 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .alert.ok .ic{color:#6ee7a0}.alert.ok .ic .i{fill:#6ee7a0}
 .alert .go{margin-left:auto;opacity:.8;width:18px;height:18px}
 .top{gap:12px}
+.mini{position:fixed;left:0;right:0;top:0;z-index:35;background:linear-gradient(100deg,#b8182c,#5a1019 70%,#1d2129);color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25);transform:translateY(-110%);transition:transform .25s ease}
+.mini.on{transform:none}
+.mini .in{max-width:1120px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.mini .lg2{font-family:Poppins,var(--font);font-weight:800;font-size:19px;letter-spacing:-.5px;line-height:1}
+.mini .lg2 span{font-weight:300;font-size:12px;letter-spacing:.14em;margin-left:6px;opacity:.9}
+.mini .st{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:14px}
+.mini .st b{font-weight:600}
+.mini .chp{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:6px 12px;font-weight:600;font-size:14px;white-space:nowrap}
+.mini button{height:38px;border-radius:11px;border:0;font:600 14px var(--font);cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:0 14px}
+.mini .rs{background:#fff;color:#b01c2e}
+.mini .so{background:rgba(0,0,0,.28);color:#fff;border:1px solid rgba(255,255,255,.2)}
+.mini .i{width:16px;height:16px}
+@media(max-width:700px){.mini .lg2 span,.mini .so .t{display:none}.mini .chp{padding:6px 10px}}
 .ubar{background:#14161f;color:#e9eaee;font-size:13px;text-align:center;padding:9px 16px;letter-spacing:.01em}
 .ubar b{color:#fff;font-weight:600}
-.sob{display:inline-flex;align-items:center;gap:8px;order:2;margin-left:auto;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:12px;padding:10px 14px;font:600 14px var(--font);cursor:pointer}
+.sob{display:inline-flex;align-items:center;justify-content:center;gap:8px;order:2;margin-left:auto;height:44px;padding:0 16px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:12px;font:600 14px var(--font);cursor:pointer;white-space:nowrap}
 .sob .i{width:16px;height:16px}
-.sob:hover{background:rgba(0,0,0,.4)}
+.sob:hover{background:rgba(0,0,0,.42)}
 .top .logo{order:1}.top .alert{order:3;flex-basis:100%;max-width:none}
+.top{align-items:center}
 @media(min-width:1000px){.top .alert{order:2;flex-basis:auto;max-width:400px;margin-left:auto}.sob{order:3;margin-left:0}}
 .so{position:absolute;right:16px;top:0}
 .hero{display:grid;grid-template-columns:1fr;gap:24px;margin-top:28px;align-items:center;justify-items:center;text-align:center}
@@ -59,7 +73,7 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 /* the columns overlap the header via a negative margin: let clicks fall through the empty container */
 .cols,.col{pointer-events:none}
 .col>*{pointer-events:auto}
-.o1{order:1}.o2{order:2}.o3{order:3}.o4{order:4}.o5{order:5}
+.o1{order:1}.o2{order:2}.o3{order:3}.o4{order:4}.o5{order:5}.o6{order:6}.o7{order:7}.o8{order:8}.o9{order:9}
 .card{background:var(--card);border-radius:18px;padding:20px;box-shadow:0 2px 12px rgba(20,22,31,.07)}
 .ch{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
 .ch h2{margin:0;font-size:18px;font-weight:600;display:flex;align-items:center;gap:10px}
@@ -265,14 +279,42 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .stn{margin:14px 2px 0;font-size:13px;color:var(--mut);text-align:center}
 .jump{display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:#fff;color:#b01c2e;border:0;border-radius:12px;padding:10px 16px;font:700 14px var(--font);cursor:pointer}
 .jump .i{width:16px;height:16px}
+/* wallet + leaderboard */
+.wl{padding:18px 20px}
+.wl .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+.wl .c{border-radius:14px;padding:12px 10px;text-align:center;background:#f6f6f8}
+.wl .c b{display:block;font-size:22px;font-weight:600;line-height:1.15}
+.wl .c span{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+.wl .c.a{background:#fdecef}.wl .c.a b{color:#b01c2e}
+.wl .c.u{background:#eceef1}
+.wl .stk{display:flex;height:12px;border-radius:99px;overflow:hidden;background:#eceef2;margin:16px 0 4px}
+.wl .stk i{display:block;height:100%}
+.wl .lgd{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:8px;flex-wrap:wrap}
+.wl .lgd s{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;text-decoration:none;vertical-align:-1px}
+.tabs{display:inline-flex;background:#f1f2f5;border-radius:99px;padding:3px}
+.tabs button{border:0;background:none;font:600 13px var(--font);padding:6px 12px;border-radius:99px;color:var(--mut);cursor:pointer}
+.tabs button.on{background:#fff;color:#b01c2e;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.lb{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.lb:first-of-type{border-top:0}
+.lb .rk{flex:none;width:34px;height:34px;border-radius:50%;background:#f1f2f5;color:var(--mut);font-weight:700;display:flex;align-items:center;justify-content:center}
+.lb.r1 .rk{background:#d4a017;color:#fff}.lb.r2 .rk{background:#a7adb8;color:#fff}.lb.r3 .rk{background:#b9774a;color:#fff}
+.lb .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb .mm{font-weight:600;font-variant-numeric:tabular-nums}
+.lb.me{background:#fdecef;margin:0 -12px;padding:10px 12px;border-radius:12px;border-top-color:transparent}
+.lb.me .rk{background:var(--red);color:#fff}
+.lb.me .nm:after{content:" · You";color:#b01c2e;font-weight:700}
+.lbf{margin-top:10px;text-align:center;font-size:13px;color:var(--mut)}
 /* store modal + redeem dialog */
 .mdl,.dlg{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:16px}
 .dlg{z-index:60}
 .mdl.open,.dlg.open{display:flex}
 .mbg{position:absolute;inset:0;background:rgba(20,22,31,.55);backdrop-filter:blur(3px)}
-.mpn{position:relative;width:min(1080px,100%);max-height:94vh;overflow:auto;background:#fff;border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:pop .22s ease}
-.mpn .sthd{border-radius:0}
-.mx{position:absolute;right:14px;top:14px;z-index:3;width:38px;height:38px;border-radius:50%;border:0;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mpn{position:relative;width:min(1080px,100%);height:min(94vh,900px);display:flex;flex-direction:column;overflow:hidden;background:#fff;border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:pop .22s ease}
+.mpn .sthd{border-radius:0;flex:none}
+.mpn .stb{display:flex;flex-direction:column;min-height:0;flex:1;padding-bottom:0}
+.mpn .flt{flex:none;padding-top:2px}
+.mpn .scr{flex:1;overflow:auto;padding:4px 2px 20px;min-height:0}
+.mx{position:absolute;right:16px;top:16px;z-index:3;width:38px;height:38px;border-radius:50%;border:0;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .mx .i{width:18px;height:18px}
 .mpn .sthd{padding-right:70px}
 @keyframes pop{from{transform:translateY(14px) scale(.98);opacity:0}to{transform:none;opacity:1}}
@@ -582,10 +624,16 @@ function dashboard(st) {
   $app.innerHTML = `
   <div id="root">
   <div class="ubar">Miles refresh <b>once a day, around 9 AM</b>. Includes activity up to <b>${esc(dayFmt(d.data_as_of))}</b>; today's lectures show up tomorrow.</div>
+  <div class="mini" id="mini"><div class="in">
+    <div class="lg2">miles<span>BY MASAI</span></div>
+    <div class="st"><span class="chp"><b id="mbal">${fmt(bal)}</b> Miles</span>
+      <button class="rs" id="mstore" type="button">${ic("cart")}<span class="t">Rewards store</span></button>
+      <button class="so" id="mout" type="button" aria-label="Sign out">${ic("out")}<span class="t">Sign out</span></button></div>
+  </div></div>
   <header class="hd"><svg class="wave" viewBox="0 0 800 140" preserveAspectRatio="none" aria-hidden="true"><path d="M0 140 C140 30 340 20 560 140 Z" fill="rgba(48,8,16,.55)"/><path d="M0 140 C90 70 220 60 360 140 Z" fill="rgba(30,6,12,.5)"/></svg><div class="w" style="position:relative">
     <div class="top">
       <div class="logo"><span class="m">miles</span><span class="b">by masai</span></div>
-      <button class="sob" id="out" type="button">${ic("out")} Sign out</button>
+      <button class="sob" id="out" type="button">${ic("out")} <span>Sign out</span></button>
       <div class="alert ${al[3]}"><div class="ic">${ic(al[0])}</div><div><b>${esc(al[1])}</b><span>${esc(al[2])}</span></div>${ic("go", "go")}</div>
     </div>
     <div class="hero">
@@ -601,14 +649,15 @@ function dashboard(st) {
 
   <main class="w"><div class="cols">
     <div class="col l">
-      <div class="tiles o2">
+      <section class="card wl o2" id="wallet"></section>
+      <div class="tiles o3">
         <div class="tile s"><div class="ib">${ic("fire")}</div><div class="l">Week Streak</div><div class="v">${streak}</div>
           ${metNow ? `<span class="btnp ok">Locked in this week</span>` : `<span class="btnp">${streak ? "Hit " + thr + " to keep it" : "Hit " + thr + " to start"}</span>`}</div>
         <div class="tile"><div class="ib">${ic("zap")}</div><div class="l">Miles Boost</div><div class="v r">${streak ? d.current_multiplier : "1.0"}x</div>
           <div class="pips">${mults.map((m, i) => `<i class="${i < streak ? "on" : ""}"></i>`).join("")}</div>
           <div class="c">${metNow ? "Boost active this week" : "Earn more Miles this week"}</div></div>
       </div>
-      <section class="card o4"><div class="ch"><h2>Your Learning Path</h2></div>
+      <section class="card o5"><div class="ch"><h2>Your Learning Path</h2></div>
         <div class="sub">Complete these to earn Miles and level up</div>
         ${pathItems}${assignRow}${!pathItems && !assignRow ? '<div class="say">You are all caught up. New lectures will show up here.</div>' : ""}
       </section>
@@ -622,13 +671,14 @@ function dashboard(st) {
         ${st.peer && st.peer.met_last_pct ? `<div class="pill">${ic("target")}<span><b>${st.peer.met_last_pct}%</b> of your batch hit the goal last week</span></div>` : ""}
         ${st.peer && st.peer.met_now && st.peer.batch_n ? `<div class="pill">${ic("zap")}<span><b>${Math.max(1, Math.round((100 * st.peer.met_now) / st.peer.batch_n))}%</b> of your batch already hit this week's goal</span></div>` : ""}
       </section>
-      <section class="card prog o3">${MOUNTAIN}<div class="ch"><h2>${ic("target")} Your Progress</h2></div>
+      <section class="card prog o4">${MOUNTAIN}<div class="ch"><h2>${ic("target")} Your Progress</h2></div>
         ${shown.map(rowHtml).join("")}
         <button class="all" data-t="all">See all rewards</button>
       </section>
-      <section class="card o5"><div class="ch"><h2>${ic("chk")} To Do This Week</h2><span class="r">${doneN} of ${todo.length} done</span></div>
+      <section class="card o6"><div class="ch"><h2>${ic("chk")} To Do This Week</h2><span class="r">${doneN} of ${todo.length} done</span></div>
         ${todo.map((q) => `<div class="td ${q.done ? "done" : ""}"><div class="cb">${q.done ? ic("tick") : ""}</div><div class="t">${esc(q.t)}</div><div class="p">${q.done ? ic("tick") : q.p}</div></div>`).join("")}
       </section>
+      <section class="card o7" id="board"></section>
     </div>
   </div>
 
@@ -655,11 +705,11 @@ function dashboard(st) {
   <div class="ov" id="ov"></div>
   <aside class="dr" id="dr"></aside>
   <div class="mdl" id="mdl"><div class="mbg" id="mbg"></div><div class="mpn" role="dialog" aria-label="Rewards store">
-    <button class="mx" id="mx" type="button" aria-label="Close">${ic("x")}</button>
     <div class="sthd"><div style="position:relative;z-index:1"><small>Rewards store</small><h2>Spend your Miles</h2>
-      <p id="stsub"></p></div><div class="sbal"><b id="sbal"></b><span>Miles to spend</span></div></div>
+      <p id="stsub"></p></div><div class="sbal"><b id="sbal"></b><span>Miles to spend</span></div>
+      <button class="mx" id="mx" type="button" aria-label="Close">${ic("x")}</button></div>
     <div class="stb"><div class="flt" id="flt">${[["all", "All"], ["open", "Unlocked"], ["Career", "Career"], ["Learn", "Learn"], ["Perks", "Perks & merch"]].map(([k, l], i) => `<button type="button" data-f="${k}" class="${i === 0 ? "on" : ""}">${l}</button>`).join("")}</div>
-      <div class="pg" id="pg"></div><div id="reqs"></div></div></div></div>
+      <div class="scr"><div class="pg" id="pg"></div><div id="reqs"></div></div></div></div></div>
   <div class="dlg" id="dlg"></div>
   </div>`;
 
@@ -741,7 +791,7 @@ function dashboard(st) {
         const res = await fetch(REDEEM_ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) });
         const j = await res.json();
         if (!j.ok) throw new Error(j.error || "failed");
-        myReq.push({ reward_id: x.reward_id, cost: x.cost, as_of: d.data_as_of, request_id: body.request_id }); savePend(); paint();
+        myReq.push({ reward_id: x.reward_id, cost: x.cost, as_of: d.data_as_of, request_id: body.request_id }); savePend(); paint(); paintWallet();
         dlgShell("", "tick", "Request sent", x.name, `<p class="msg">We have your request. ${fmt(x.cost)} Miles are reserved and the team will reach out to schedule or activate it.</p>${closeBtn}`); bindClose();
       } catch (e) {
         yes.disabled = false; yes.textContent = "Confirm redeem";
@@ -751,6 +801,43 @@ function dashboard(st) {
     });
   };
 
+  // ---- wallet (earned / used / available) and leaderboard
+  const walletEl = document.getElementById("wallet");
+  const paintWallet = () => {
+    const reserved = myReq.reduce((a, p) => a + p.cost, 0), used = d.total_redeemed + reserved;
+    const avail = bal - reserved, earned2 = d.total_earned;
+    const pctUsed = earned2 ? Math.min(100, Math.round((used / earned2) * 100)) : 0;
+    walletEl.innerHTML = `<div class="ch" style="margin-bottom:8px"><h2>Miles wallet</h2><span class="r">${used > 0 ? pctUsed + "% used" : "Nothing used yet"}</span></div>
+      <div class="row3"><div class="c"><b>${fmt(earned2)}</b><span>Earned</span></div>
+        <div class="c u"><b>${fmt(used)}</b><span>Used${reserved ? " (incl. requested)" : ""}</span></div>
+        <div class="c a"><b>${fmt(avail)}</b><span>Available</span></div></div>
+      <div class="stk"><i style="width:${100 - pctUsed}%;background:linear-gradient(90deg,#ee3a52,#c4182f)"></i><i style="width:${pctUsed}%;background:#4d5260"></i></div>
+      <div class="lgd"><span><s style="background:#d71f3a"></s>Available</span><span><s style="background:#4d5260"></s>Used on rewards</span></div>`;
+    const ringNum = document.querySelector(".ring .n"); if (ringNum) ringNum.textContent = fmt(avail);
+    const mb = document.getElementById("mbal"); if (mb) mb.textContent = fmt(avail);
+  };
+  const boardEl = document.getElementById("board");
+  let boardTab = "week";
+  const paintBoard = () => {
+    const lb = st.leaderboard || {}, rk = st.rank || {};
+    const list = lb[boardTab] || [];
+    const me = rk[boardTab];
+    const inTop = list.some((x) => x.you);
+    boardEl.innerHTML = `<div class="ch"><h2>${ic("award")} Leaderboard</h2>
+      <div class="tabs"><button type="button" data-b="week" class="${boardTab === "week" ? "on" : ""}">This week</button><button type="button" data-b="all" class="${boardTab === "all" ? "on" : ""}">All time</button></div></div>
+      ${list.length ? list.map((x) => `<div class="lb r${x.r} ${x.you ? "me" : ""}"><div class="rk">${x.r}</div><div class="nm">${esc(x.n)}</div><div class="mm">${fmt(x.m)}</div></div>`).join("")
+        : '<div class="say">No Miles on the board yet. Be the first.</div>'}
+      ${me && !inTop ? `<div class="lb me"><div class="rk">${me.r}</div><div class="nm">${esc((d.name || "").split(" ")[0] || "You")}</div><div class="mm">${fmt(me.m)}</div></div>` : ""}
+      <div class="lbf">${me ? `You are #${me.r} of ${me.of} in your batch` : ""}</div>`;
+    boardEl.querySelectorAll("[data-b]").forEach((b) => b.addEventListener("click", () => { boardTab = b.dataset.b; paintBoard(); }));
+  };
+  paintWallet(); paintBoard();
+  // sticky mini bar: slides in once the hero has scrolled away
+  const mini = document.getElementById("mini");
+  const onScroll = () => mini.classList.toggle("on", window.scrollY > 260);
+  window.addEventListener("scroll", onScroll, { passive: true }); onScroll();
+  document.getElementById("mstore").addEventListener("click", () => openStore());
+  document.getElementById("mout").addEventListener("click", () => loginView());
   const outBtn = document.getElementById("out"); if (outBtn) outBtn.addEventListener("click", () => loginView());
   // rewards drawer: right-side card (bottom sheet on phones), coloured per stage
   const dr = document.getElementById("dr"), root = document.getElementById("root");

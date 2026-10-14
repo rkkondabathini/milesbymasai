@@ -279,6 +279,29 @@ def run(as_of):
             payloads[m["learner_id"]]["peer"] = {"batch_n": len(members), "met_now": met,
                                                  "met_last_pct": round(100 * sum(1 for x in members if x["learner_id"] in met_last) / len(members)),
                                                  "ahead_pct": round(100 * below / len(members))}
+    # leaderboard: top 5 per batch, all-time and this week. Names are "First L." and the board
+    # lives inside each learner's encrypted payload, so it is only visible after sign-in.
+    def short_name(n):
+        parts = (n or "").split()
+        return (parts[0].title() + (" " + parts[-1][0].upper() + "." if len(parts) > 1 else "")) if parts else "Learner"
+
+    week_earned = {w_["learner_id"]: w_["miles_earned"] for w_ in weekly if w_["week_start"] == cur_week.isoformat()}
+    for members in by_batch.values():
+        for key, val in (("all", lambda m: m["total_earned"]), ("week", lambda m: week_earned.get(m["learner_id"], 0))):
+            ranked = sorted(members, key=lambda m: (-val(m), m["name"]))
+            rank_of, prev_v, prev_r = {}, None, 0
+            for i, m in enumerate(ranked, start=1):
+                v = val(m)
+                prev_r = prev_r if v == prev_v else i
+                prev_v = v
+                rank_of[m["learner_id"]] = prev_r
+            top = [m for m in ranked if val(m) > 0][:5]
+            for m in members:
+                pl = payloads[m["learner_id"]]
+                pl.setdefault("leaderboard", {})[key] = [
+                    {"r": rank_of[t["learner_id"]], "n": short_name(t["name"]), "m": val(t), "you": t["learner_id"] == m["learner_id"]}
+                    for t in top]
+                pl.setdefault("rank", {})[key] = {"r": rank_of[m["learner_id"]], "of": len(members), "m": val(m)}
     write_csv(OUT / "student_weekly.csv", weekly, list(weekly[0]) if weekly else [])
     write_csv(OUT / "student_summary.csv", summary, list(summary[0]) if summary else [])
     write_csv(OUT / "comms_queue.csv", comms, list(comms[0]) if comms else [])
