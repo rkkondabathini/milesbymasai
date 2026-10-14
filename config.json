@@ -1,5 +1,5 @@
 {
-  "weekly_threshold": 100,
+  "weekly_threshold": 400,
   "streak_multipliers": [
     1.1,
     1.2,

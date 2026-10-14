@@ -1,20 +1,92 @@
 [
-  {"g": "Getting started", "q": "Who can earn Miles?", "a": "Every learner in the batch. Miles are added automatically when you attend or submit, so there's nothing to sign up for."},
-  {"g": "Getting started", "q": "Do Miles from before the launch count?", "a": "Yes. Miles are calculated from your very first session, so everything you've done so far is already on your dashboard."},
-  {"g": "Getting started", "q": "Do I need to do anything to start earning?", "a": "No. Keep attending lectures and submitting your work. Your Miles are calculated and added for you."},
-  {"g": "Earning Miles", "q": "Do recorded lectures count?", "a": "Yes. Watching a recording earns 150 Miles for a mandatory lecture and 100 Miles for a non-mandatory one. Attending live earns 50 more."},
-  {"g": "Earning Miles", "q": "If I attend live and also watch the recording, do I earn twice?", "a": "No. Each lecture earns Miles once, at the higher live rate if you attended live. Rewatching is still a great way to revise."},
-  {"g": "Earning Miles", "q": "Does my score change the Miles I get?", "a": "No. Miles are for submitting assignments and taking evaluations, whatever your score."},
-  {"g": "Streaks and the multiplier", "q": "What counts towards the 100 Miles a week?", "a": "Every Mile you earn that week from lectures, assignments and evaluations. One live mandatory lecture (200 Miles) is enough on its own."},
-  {"g": "Streaks and the multiplier", "q": "When does a streak week start and end?", "a": "A streak week runs Monday to Sunday. Earn 100 or more Miles by Sunday night to keep your streak going."},
-  {"g": "Streaks and the multiplier", "q": "What happens if I miss a week?", "a": "Your multiplier goes back to 1.0x and the streak starts again. Miles you've already earned are never taken away."},
-  {"g": "Streaks and the multiplier", "q": "Is there a limit to the multiplier?", "a": "Yes. It rises by 0.1x each week and is capped at 1.5x from Week 5. Keep your streak going to stay at 1.5x."},
-  {"g": "Dashboard and redeeming", "q": "Where can I see my Miles?", "a": "On your Miles dashboard. Your Program Coordinator (PC) will share the link with you."},
-  {"g": "Dashboard and redeeming", "q": "How often is the dashboard updated?", "a": "Every day, so Miles for today's lectures and submissions show up by the next day."},
-  {"g": "Dashboard and redeeming", "q": "How do I redeem a reward?", "a": "Choose a reward on your dashboard and redeem it there. The Miles are deducted from your balance and the team reaches out to schedule or activate your reward."},
-  {"g": "Dashboard and redeeming", "q": "I can't open my dashboard. What should I do?", "a": "Sign in with your registered Masai email ID. If it still doesn't open, reach out to your PC."},
-  {"g": "Good to know", "q": "Can the Miles structure change?", "a": "Yes. Miles per activity, streak rules and rewards may change from time to time. You will be informed whenever there is a change."},
-  {"g": "Good to know", "q": "Can I convert or transfer Miles?", "a": "No. Miles can only be spent on rewards in the Miles rewards store. They can't be exchanged for cash or given to another learner."},
-  {"g": "Good to know", "q": "Do Miles affect my grades or placements?", "a": "No. Miles reward your engagement and are separate from your grades, evaluations and placement process."},
-  {"g": "Good to know", "q": "Who do I ask if my Miles look wrong?", "a": "Reach out to your PC or raise a ticket from the Miles dashboard with the activity and the date, and they'll look into it."}
+ {
+  "g": "Getting started",
+  "q": "Who can earn Miles?",
+  "a": "Every learner in the batch. Miles are added automatically when you attend or submit, so there's nothing to sign up for."
+ },
+ {
+  "g": "Getting started",
+  "q": "Do Miles from before the launch count?",
+  "a": "Yes. Miles are calculated from your very first session, so everything you've done so far is already on your dashboard."
+ },
+ {
+  "g": "Getting started",
+  "q": "Do I need to do anything to start earning?",
+  "a": "No. Keep attending lectures and submitting your work. Your Miles are calculated and added for you."
+ },
+ {
+  "g": "Earning Miles",
+  "q": "Do recorded lectures count?",
+  "a": "Yes. Watching a recording earns 150 Miles for a mandatory lecture and 100 Miles for a non-mandatory one. Attending live earns 50 more."
+ },
+ {
+  "g": "Earning Miles",
+  "q": "If I attend live and also watch the recording, do I earn twice?",
+  "a": "No. Each lecture earns Miles once, at the higher live rate if you attended live. Rewatching is still a great way to revise."
+ },
+ {
+  "g": "Earning Miles",
+  "q": "Does my score change the Miles I get?",
+  "a": "No. Miles are for submitting assignments and taking evaluations, whatever your score."
+ },
+ {
+  "g": "Streaks and the multiplier",
+  "q": "What counts towards the 400 Miles a week?",
+  "a": "Every Mile you earn that week from lectures, assignments and evaluations. Two live mandatory lectures (400 Miles) are enough on their own."
+ },
+ {
+  "g": "Streaks and the multiplier",
+  "q": "When does a streak week start and end?",
+  "a": "A streak week runs Monday to Sunday. Earn 400 or more Miles by Sunday night to keep your streak going."
+ },
+ {
+  "g": "Streaks and the multiplier",
+  "q": "What happens if I miss a week?",
+  "a": "Your multiplier goes back to 1.0x and the streak starts again. Miles you've already earned are never taken away."
+ },
+ {
+  "g": "Streaks and the multiplier",
+  "q": "Is there a limit to the multiplier?",
+  "a": "Yes. It rises by 0.1x each week and is capped at 1.5x from Week 5. Keep your streak going to stay at 1.5x."
+ },
+ {
+  "g": "Dashboard and redeeming",
+  "q": "Where can I see my Miles?",
+  "a": "On your Miles dashboard. Your Program Coordinator (PC) will share the link with you."
+ },
+ {
+  "g": "Dashboard and redeeming",
+  "q": "How often is the dashboard updated?",
+  "a": "Every day, so Miles for today's lectures and submissions show up by the next day."
+ },
+ {
+  "g": "Dashboard and redeeming",
+  "q": "How do I redeem a reward?",
+  "a": "Choose a reward on your dashboard and redeem it there. The Miles are deducted from your balance and the team reaches out to schedule or activate your reward."
+ },
+ {
+  "g": "Dashboard and redeeming",
+  "q": "I can't open my dashboard. What should I do?",
+  "a": "Sign in with your registered Masai email ID. If it still doesn't open, reach out to your PC."
+ },
+ {
+  "g": "Good to know",
+  "q": "Can the Miles structure change?",
+  "a": "Yes. Miles per activity, streak rules and rewards may change from time to time. You will be informed whenever there is a change."
+ },
+ {
+  "g": "Good to know",
+  "q": "Can I convert or transfer Miles?",
+  "a": "No. Miles can only be spent on rewards in the Miles rewards store. They can't be exchanged for cash or given to another learner."
+ },
+ {
+  "g": "Good to know",
+  "q": "Do Miles affect my grades or placements?",
+  "a": "No. Miles reward your engagement and are separate from your grades, evaluations and placement process."
+ },
+ {
+  "g": "Good to know",
+  "q": "Who do I ask if my Miles look wrong?",
+  "a": "Reach out to your PC or raise a ticket from the Miles dashboard with the activity and the date, and they'll look into it."
+ }
 ]

@@ -58,6 +58,8 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .top .logo{order:1}.top .alert{order:3;flex-basis:100%;max-width:none}
 .top{align-items:center}
 @media(min-width:1000px){.top{align-items:flex-start}.trc{order:2;display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-left:auto}.top .alert{order:0;flex-basis:auto;max-width:400px;margin-left:0}.sob{order:0;margin:0}}
+.greet{display:contents}
+.greet small,.greet h1,.greet p{order:1}.ringw{order:2}.hbtns{order:3}
 .hero{display:grid;grid-template-columns:1fr;gap:24px;margin-top:28px;align-items:center;justify-items:center;text-align:center}
 .ph{display:none}
 .greet small{display:block;font-size:22px;font-weight:300;opacity:.95;white-space:nowrap}
@@ -70,9 +72,14 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .ring svg{filter:drop-shadow(0 0 10px rgba(255,77,99,.45))}
 .ring .n{font-size:42px;font-weight:600;line-height:1}
 .ring .u{font-size:13px;letter-spacing:.22em;margin-top:8px;opacity:.9}
-.lvl{display:inline-flex;align-items:center;gap:10px;background:rgba(12,10,16,.5);border:1px solid rgba(255,255,255,.14);border-radius:99px;padding:9px 20px;font-weight:600;font-size:15px;margin-top:14px}
-.lvl-n{margin-top:10px;font-size:14px;opacity:.92;display:flex;align-items:center;justify-content:center;gap:8px}
-.lvl-n .i{width:16px;height:16px}
+.lvb{width:min(250px,100%);margin:16px auto 0;text-align:left}
+.lvt{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;color:rgba(255,255,255,.8);white-space:nowrap}
+.lvn{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:14px;color:#fff;white-space:nowrap}
+.lvn .i{width:16px;height:16px}
+.lvp{height:6px;border-radius:99px;background:rgba(255,255,255,.2);margin-top:9px;overflow:hidden}
+.lvp i{display:block;height:100%;width:0;border-radius:99px;background:#fff;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.hbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:20px}
+.hbtns .jump{margin-top:0;padding:12px 18px}
 /* grid */
 .cols{display:flex;flex-direction:column;gap:16px;margin-top:-30px;position:relative;z-index:2}
 .col{display:contents}
@@ -286,7 +293,7 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .jump{display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:#fff;color:#b01c2e;border:0;border-radius:12px;padding:10px 16px;font:700 14px var(--font);cursor:pointer}
 .jump .i{width:16px;height:16px}
 /* how it works modal + consent */
-.jrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+
 .jump.s{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3);margin-top:0}
 .jump.p{margin-top:0}
 .hw .tb{display:flex;gap:6px;padding:12px 18px 0;background:#fff;flex:none;border-bottom:1px solid var(--line)}
@@ -334,7 +341,7 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .lbh{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .pdi .bt{display:block;font-size:11px;color:var(--mut);font-weight:600;margin-top:-4px;margin-bottom:6px}
 /* ring legend + leaderboard */
-.rleg{display:flex;gap:16px;justify-content:center;margin-top:12px;font-size:13px;color:rgba(255,255,255,.85)}
+.rleg{display:flex;gap:16px;justify-content:center;margin-top:14px;font-size:13px;color:rgba(255,255,255,.85)}
 .rleg b{font-weight:600;color:#fff}
 .rleg s{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;text-decoration:none;vertical-align:-1px}
 .rleg s.a{background:#ff4d63}.rleg s.u{background:rgba(255,255,255,.55)}
@@ -476,8 +483,9 @@ details.fq.more{display:none}
   .hd{padding:24px 0 64px}
   .logo .m{font-size:54px}.logo .b{font-size:16px}
   .alert{width:auto;min-width:340px;max-width:400px}
-  .hero{grid-template-columns:auto auto calc((100% - 24px) / 2);justify-content:space-between;justify-items:start;text-align:left;margin-top:22px;align-items:center;gap:0}
+  .hero{grid-template-columns:minmax(0,1fr) 250px calc((100% - 24px) / 2);justify-content:space-between;justify-items:start;text-align:left;margin-top:22px;align-items:center;gap:0 28px}
   .ph{display:block}
+  .greet{display:block}.hbtns{justify-content:flex-start;order:0}.ringw{order:0}
   .ringw{justify-self:center}
   .greet h1{font-size:44px}
   
@@ -584,7 +592,7 @@ function loginView(msg) {
           <div class="tl">${ic("pen")}<b>${rate("practice_assignment")}</b><span>Practice</span></div>
           <div class="tl">${ic("chk")}<b>${rate("graded_assignment")}</b><span>Graded</span></div>
         </div>
-        <div class="bst"><div class="l">Streak boost<small>100+ Miles a week</small></div>
+        <div class="bst"><div class="l">Streak boost<small>${thr}+ Miles a week</small></div>
           <div class="ch">${M.map((m, i) => `${i ? '<div class="bl"></div>' : ""}<div class="bn ${i === M.length - 1 ? "top" : ""}">${m}x</div>`).join("")}</div></div>
       </div>
 
@@ -683,7 +691,7 @@ function dashboard(st) {
   const badges = [
     ["flag", "First Miles", "Earn any Miles", earned > 0], ["mic", "Live Learner", "5 live lectures", liveN >= 5],
     ["pen", "Practice Pro", "10 practices", cnt("practice_assignment") >= 10],
-    ["target", "Goal Getter", "100 Miles in a week", st.weekly.some((w) => w.streak_met)],
+    ["target", "Goal Getter", `${thr} Miles in a week`, st.weekly.some((w) => w.streak_met)],
     ["zap", "On a Roll", "3-week streak", streak >= 3], ["gem", "Max Boost", "Reach 1.5x", d.current_multiplier >= 1.5]];
 
   const pc = st.pc || {}, phone = (pc.phone || SUPPORT_PHONE || "").trim();
@@ -708,14 +716,14 @@ function dashboard(st) {
       </div>
     </div>
     <div class="hero">
-      <div class="greet"><small>Good to see you back,</small><h1>${esc(first)}!</h1><p>${esc(sub)}</p></div>
+      <div class="greet"><small>Good to see you back,</small><h1>${esc(first)}!</h1><p>${esc(sub)}</p>
+        <div class="hbtns"><button class="jump p" id="jump" type="button">${ic("cart")} Rewards store</button>
+          <button class="jump s" id="hjump" type="button">${ic("book")} How to earn</button></div></div>
       <div class="ringw"><div class="ring">${ring}<div class="c"><div class="n" data-count="${bal}">0</div><div class="u">MILES</div></div></div>
         <div class="rleg" id="rleg"></div>
-        <div class="lvl"><span style="display:flex;color:${(TH[lvl.name] || { l: "#7ee2a8" }).l}">${ic(lvl.ic)}</span> Level ${li + 1} · ${lvl.name}</div>
-        <div class="lvl-n">${nxtL ? fmt(nxtL.at - earned) + " Miles to <span style=\"display:flex;color:" + TH[nxtL.name].l + "\">" + ic(nxtL.ic) + "</span><b style=\"font-weight:600\">" + nxtL.name + "</b>" : "Top level reached"}</div>
-        <div class="jrow"><button class="jump p" id="jump" type="button">${ic("cart")} Rewards store</button>
-          <button class="jump s" id="hjump" type="button">${ic("book")} How to earn</button></div></div>
-    
+        <div class="lvb"><div class="lvt"><span class="lvn"><span style="display:flex;color:${(TH[lvl.name] || { l: "#7ee2a8" }).l}">${ic(lvl.ic)}</span>Level ${li + 1} · ${lvl.name}</span>
+          <span>${nxtL ? fmt(nxtL.at - earned) + " to " + nxtL.name : "Top level"}</span></div>
+          <div class="lvp"><i data-w="${lvlPct}"></i></div></div></div>
       <div class="ph"></div>
     </div>
   </div></header>
