@@ -863,17 +863,18 @@ function dashboard(st) {
     const consentText = `I confirm I want to redeem "${x.name}" for ${fmt(x.cost)} Miles. The Miles will be deducted from my balance and this request cannot be undone.`;
     dlgShell("", ic0, x.name, `${fmt(x.cost)} Miles`, `<div class="kv"><span>Your Miles</span><b>${fmt(sp)}</b></div><div class="kv"><span>This reward</span><b class="neg">− ${fmt(x.cost)}</b></div>
       <div class="kv"><span>Left after</span><b>${fmt(sp - x.cost)}</b></div>
-      ${live ? `<div class="ph2"><label for="dph">Best number for the team to reach you</label><input id="dph" type="tel" inputmode="tel" value="${esc((st.contact || {}).phone || "")}" placeholder="Phone number"></div>
-        <label class="cons"><input type="checkbox" id="dck"><span>${esc(consentText)}</span></label>`
-        : `<p class="msg">Redemption inside the dashboard is not switched on yet.${REDEEM_FORM_URL ? " Use the redemption form instead." : ""}</p>`}
+      <div class="ph2"><label for="dph">Best number for the team to reach you</label><input id="dph" type="tel" inputmode="tel" value="${esc((st.contact || {}).phone || "")}" placeholder="Phone number"></div>
+      <label class="cons"><input type="checkbox" id="dck"><span>${esc(consentText)}</span></label>
+      ${live ? "" : `<p class="msg" style="margin-top:8px">Preview: saving requests is not connected in this build, so nothing will be recorded.</p>`}
       <div class="err" id="derr"></div>
-      <div class="acts"><button class="no" type="button" id="dno">Cancel</button>${live ? `<button class="yes" type="button" id="dyes" disabled>Confirm redeem</button>` : REDEEM_FORM_URL ? `<a class="yes" href="${esc(REDEEM_FORM_URL)}" target="_blank" rel="noopener">Open form</a>` : ""}</div>`);
+      <div class="acts"><button class="no" type="button" id="dno">Cancel</button><button class="yes" type="button" id="dyes" disabled>${live ? "Confirm redeem" : "Confirm (preview)"}</button></div>`);
     bindClose();
     const yes = document.getElementById("dyes"); if (!yes) return;
     const ck = document.getElementById("dck"), ph = document.getElementById("dph");
     const ready = () => { yes.disabled = !(ck.checked && ph.value.replace(/\D/g, "").length >= 10); };
     ck.addEventListener("change", ready); ph.addEventListener("input", ready);
     yes.addEventListener("click", async () => {
+      if (!live) { dlgShell("lk", "lock", "Preview only", x.name, `<p class="msg">Nothing was saved. Once the redemption sheet is connected, this confirmation is recorded with your request.</p>${closeBtn}`); bindClose(); return; }
       yes.disabled = true; yes.textContent = "Sending…"; document.getElementById("derr").textContent = "";
       const body = { request_id: (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random()), rid: st.rid, tok: st.tok,
         as_of: d.data_as_of, balance: d.current_balance, reward_id: x.reward_id, reward_name: x.name,
