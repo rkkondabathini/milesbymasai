@@ -1,0 +1,90 @@
+{
+  "weekly_threshold": 100,
+  "streak_multipliers": [
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5
+  ],
+  "rates": {
+    "mandatory_live": 200,
+    "mandatory_recorded": 150,
+    "nonmandatory_live": 150,
+    "nonmandatory_recorded": 100,
+    "practice_assignment": 100,
+    "graded_assignment": 300,
+    "graded_evaluation": 300,
+    "mock_evaluation": 150
+  },
+  "rewards": [
+    {
+      "reward_id": "R1",
+      "name": "1:1 doubt session with your CC (30 min)",
+      "cost": 1000,
+      "masai_cost": 0
+    },
+    {
+      "reward_id": "R2",
+      "name": "Mock interview",
+      "cost": 5000,
+      "masai_cost": 0
+    },
+    {
+      "reward_id": "R3",
+      "name": "Interview preparation assignment",
+      "cost": 5000,
+      "masai_cost": 0
+    },
+    {
+      "reward_id": "R4",
+      "name": "Resume building support",
+      "cost": 5000,
+      "masai_cost": 0
+    },
+    {
+      "reward_id": "R5",
+      "name": "1:1 session with a TA (30 min)",
+      "cost": 5000,
+      "masai_cost": 1500
+    },
+    {
+      "reward_id": "R6",
+      "name": "Free hackathon entry",
+      "cost": 5000,
+      "masai_cost": 1000
+    },
+    {
+      "reward_id": "R7",
+      "name": "50% off the Campus Immersion fee",
+      "cost": 8000,
+      "masai_cost": 1000
+    },
+    {
+      "reward_id": "R8",
+      "name": "1:1 session with an IM (30 min)",
+      "cost": 20000,
+      "masai_cost": 4000
+    },
+    {
+      "reward_id": "R9",
+      "name": "80% off a one-month AI tool subscription",
+      "cost": 20000,
+      "masai_cost": 2000
+    },
+    {
+      "reward_id": "R10",
+      "name": "Institute t-shirt",
+      "cost": 5000,
+      "masai_cost": 0,
+      "tag": "New"
+    },
+    {
+      "reward_id": "R11",
+      "name": "Institute hoodie",
+      "cost": 8000,
+      "masai_cost": 0,
+      "tag": "New"
+    }
+  ]
+}

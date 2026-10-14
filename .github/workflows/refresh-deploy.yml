@@ -1,0 +1,28 @@
+name: Refresh Miles and deploy
+
+# Manual for now. To run daily, add:  schedule: [{ cron: "30 1 * * *" }]   (07:00 IST)
+on:
+  workflow_dispatch:
+
+concurrency: miles-deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Ingest, recompute, build, deploy
+        run: ./ops/daily_refresh.sh
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          REDEEM_SECRET: ${{ secrets.REDEEM_SECRET }}
+          MILES_REDEEM_ENDPOINT: ${{ secrets.MILES_REDEEM_ENDPOINT }}
+          MILES_REDEEMED_CSV: ${{ secrets.MILES_REDEEMED_CSV }}

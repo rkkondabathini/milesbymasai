@@ -1,0 +1,20 @@
+# learner data (names, emails, phone numbers) and anything derived from it
+data/store/
+data/output/
+data/input/learners.csv
+data/input/redemptions.csv
+data/sample/
+
+# secrets and build output
+webapp/.redeem_secret
+.redeem_secret
+webapp/dist/
+webapp/redeem_webhook.gs
+
+# internal documents and scratch
+*.pdf
+*.png
+.DS_Store
+node_modules/
+__pycache__/
+v/
