@@ -30,7 +30,7 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .alert.ok .ic{color:#6ee7a0}.alert.ok .ic .i{fill:#6ee7a0}
 .alert .go{margin-left:auto;opacity:.8;width:18px;height:18px}
 .top{gap:12px}
-.mini{position:fixed;left:0;right:0;top:0;z-index:35;background:linear-gradient(100deg,#b8182c,#5a1019 70%,#1d2129);color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25);transform:translateY(-110%);transition:transform .25s ease}
+.mini{position:fixed;left:0;right:0;top:var(--ub);z-index:35;background:linear-gradient(100deg,#b8182c,#5a1019 70%,#1d2129);color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25);transform:translateY(-110%);transition:transform .25s ease}
 .mini.on{transform:none}
 .mini .in{max-width:1120px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
 .mini .lg2{font-family:Poppins,var(--font);font-weight:800;font-size:19px;letter-spacing:-.5px;line-height:1}
@@ -40,14 +40,17 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .mini .chp{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:6px 12px;font-weight:600;font-size:14px;white-space:nowrap}
 .mini button{height:38px;border-radius:11px;border:0;font:600 14px var(--font);cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:0 14px}
 .mini .rs{background:#fff;color:#b01c2e}
-.mini .so{background:rgba(0,0,0,.28);color:#fff;border:1px solid rgba(255,255,255,.2)}
+.mini .so{background:none;color:rgba(255,255,255,.75);border:0;padding:0 4px;font-weight:500;font-size:13px}
+.mini .so:hover{color:#fff;text-decoration:underline}
 .mini .i{width:16px;height:16px}
 @media(max-width:700px){.mini .lg2 span,.mini .so .t{display:none}.mini .chp{padding:6px 10px}}
-.ubar{background:#14161f;color:#e9eaee;font-size:13px;text-align:center;padding:9px 16px;letter-spacing:.01em}
+:root{--ub:38px}
+.ubar{position:sticky;top:0;z-index:40;height:var(--ub);display:flex;align-items:center;justify-content:center;background:#14161f;color:#e9eaee;font-size:13px;text-align:center;padding:0 16px;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:700px){:root{--ub:46px}.ubar{white-space:normal;line-height:1.3;font-size:12px;padding:4px 12px}}
 .ubar b{color:#fff;font-weight:600}
-.sob{display:inline-flex;align-items:center;justify-content:center;gap:8px;order:2;margin-left:auto;height:44px;padding:0 16px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:12px;font:600 14px var(--font);cursor:pointer;white-space:nowrap}
-.sob .i{width:16px;height:16px}
-.sob:hover{background:rgba(0,0,0,.42)}
+.sob{display:inline-flex;align-items:center;gap:6px;order:2;margin-left:auto;height:auto;padding:4px 2px;background:none;border:0;color:rgba(255,255,255,.72);font:500 13px var(--font);cursor:pointer;white-space:nowrap}
+.sob .i{width:14px;height:14px}
+.sob:hover{color:#fff;text-decoration:underline;text-underline-offset:3px}
 .top .logo{order:1}.top .alert{order:3;flex-basis:100%;max-width:none}
 .top{align-items:center}
 @media(min-width:1000px){.top .alert{order:2;flex-basis:auto;max-width:400px;margin-left:auto}.sob{order:3;margin-left:0}}
@@ -416,15 +419,31 @@ details.fq.more{display:none}
   .hd{padding:24px 0 64px}
   .logo .m{font-size:54px}.logo .b{font-size:16px}
   .alert{width:auto;min-width:340px;max-width:400px}
-  .hero{grid-template-columns:auto auto calc((100% - 24px) / 2.12);justify-content:space-between;justify-items:start;text-align:left;margin-top:44px;align-items:center;gap:0}
+  .hero{grid-template-columns:auto auto calc((100% - 24px) / 2);justify-content:space-between;justify-items:start;text-align:left;margin-top:44px;align-items:center;gap:0}
   .ph{display:block}
   .ringw{justify-self:center}
   .greet h1{font-size:44px}
   
   .ring{width:210px;height:210px}.ring svg{width:210px;height:210px}.ring .n{font-size:44px}
-  .cols{flex-direction:row;align-items:flex-start;gap:24px;margin-top:-358px}
-  .col{display:flex;flex-direction:column;gap:20px;min-width:0}
-  .col.l{flex:1.12;margin-top:398px}.col.r{flex:1}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch;margin-top:-358px}
+  .col{display:contents}
+  .cols>.col>*,.cols>.col>.tiles{min-width:0}
+  .g-week{grid-column:2;grid-row:1}
+  .g-wallet{grid-column:1/-1;grid-row:2}
+  .g-tiles{grid-column:1;grid-row:3}
+  .g-prog{grid-column:2;grid-row:3}
+  .g-path{grid-column:1;grid-row:4}
+  .g-todo{grid-column:2;grid-row:4}
+  .g-board{grid-column:1/-1;grid-row:5}
+  .tiles{height:100%}
+  .tile{display:flex;flex-direction:column;justify-content:center}
+  .wl{display:grid;grid-template-columns:minmax(150px,.7fr) 2.2fr;column-gap:28px;align-items:center}
+  .wl .ch{margin:0!important;align-self:center;flex-direction:column;align-items:flex-start;gap:4px}
+  .wl .wr{min-width:0}
+  .lbs{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .lb{flex-direction:column;text-align:center;border:1px solid var(--line)!important;border-radius:14px;padding:16px 8px!important;margin:0!important;gap:8px}
+  .lb .nm{flex:none;max-width:100%}
+  .lb.me{background:#fdecef;border-color:#f3b8c1!important}
   .bds{grid-template-columns:repeat(6,1fr)}
 }
 </style>
@@ -623,7 +642,7 @@ function dashboard(st) {
 
   $app.innerHTML = `
   <div id="root">
-  <div class="ubar">Miles refresh <b>once a day, around 9 AM</b>. Includes activity up to <b>${esc(dayFmt(d.data_as_of))}</b>; today's lectures show up tomorrow.</div>
+  <div class="ubar"><span>Miles refresh <b>once a day, around 9 AM</b>. Includes activity up to <b>${esc(dayFmt(d.data_as_of))}</b>; today's lectures show up tomorrow.</span></div>
   <div class="mini" id="mini"><div class="in">
     <div class="lg2">miles<span>BY MASAI</span></div>
     <div class="st"><span class="chp"><b id="mbal">${fmt(bal)}</b> Miles</span>
@@ -649,21 +668,21 @@ function dashboard(st) {
 
   <main class="w"><div class="cols">
     <div class="col l">
-      <section class="card wl o2" id="wallet"></section>
-      <div class="tiles o3">
+      <section class="card wl o2 g-wallet" id="wallet"></section>
+      <div class="tiles o3 g-tiles">
         <div class="tile s"><div class="ib">${ic("fire")}</div><div class="l">Week Streak</div><div class="v">${streak}</div>
           ${metNow ? `<span class="btnp ok">Locked in this week</span>` : `<span class="btnp">${streak ? "Hit " + thr + " to keep it" : "Hit " + thr + " to start"}</span>`}</div>
         <div class="tile"><div class="ib">${ic("zap")}</div><div class="l">Miles Boost</div><div class="v r">${streak ? d.current_multiplier : "1.0"}x</div>
           <div class="pips">${mults.map((m, i) => `<i class="${i < streak ? "on" : ""}"></i>`).join("")}</div>
           <div class="c">${metNow ? "Boost active this week" : "Earn more Miles this week"}</div></div>
       </div>
-      <section class="card o5"><div class="ch"><h2>Your Learning Path</h2></div>
+      <section class="card o5 g-path"><div class="ch"><h2>Your Learning Path</h2></div>
         <div class="sub">Complete these to earn Miles and level up</div>
         ${pathItems}${assignRow}${!pathItems && !assignRow ? '<div class="say">You are all caught up. New lectures will show up here.</div>' : ""}
       </section>
     </div>
     <div class="col r">
-      <section class="card o1"><div class="ch"><h2>${ic("cal")} This Week</h2><span class="r ${urgent ? "hot" : ""}">${dl} day${dl === 1 ? "" : "s"} left</span></div>
+      <section class="card o1 g-week"><div class="ch"><h2>${ic("cal")} This Week</h2><span class="r ${urgent ? "hot" : ""}">${dl} day${dl === 1 ? "" : "s"} left</span></div>
         <div class="big">${fmt(d.week_base_miles)}<small>/ ${thr} Miles</small></div>
         <div class="bar ${metNow ? "done" : ""}"><i data-w="${Math.min(100, Math.round((d.week_base_miles / thr) * 100))}"></i></div>
         <div class="say">${metNow ? "<b>Weekly goal done.</b> Your streak is safe." : `<b>${fmt(d.miles_to_100)} Miles</b> to go this week`}</div>
@@ -671,14 +690,14 @@ function dashboard(st) {
         ${st.peer && st.peer.met_last_pct ? `<div class="pill">${ic("target")}<span><b>${st.peer.met_last_pct}%</b> of your batch hit the goal last week</span></div>` : ""}
         ${st.peer && st.peer.met_now && st.peer.batch_n ? `<div class="pill">${ic("zap")}<span><b>${Math.max(1, Math.round((100 * st.peer.met_now) / st.peer.batch_n))}%</b> of your batch already hit this week's goal</span></div>` : ""}
       </section>
-      <section class="card prog o4">${MOUNTAIN}<div class="ch"><h2>${ic("target")} Your Progress</h2></div>
+      <section class="card prog o4 g-prog">${MOUNTAIN}<div class="ch"><h2>${ic("target")} Your Progress</h2></div>
         ${shown.map(rowHtml).join("")}
         <button class="all" data-t="all">See all rewards</button>
       </section>
-      <section class="card o6"><div class="ch"><h2>${ic("chk")} To Do This Week</h2><span class="r">${doneN} of ${todo.length} done</span></div>
+      <section class="card o6 g-todo"><div class="ch"><h2>${ic("chk")} To Do This Week</h2><span class="r">${doneN} of ${todo.length} done</span></div>
         ${todo.map((q) => `<div class="td ${q.done ? "done" : ""}"><div class="cb">${q.done ? ic("tick") : ""}</div><div class="t">${esc(q.t)}</div><div class="p">${q.done ? ic("tick") : q.p}</div></div>`).join("")}
       </section>
-      <section class="card o7" id="board"></section>
+      <section class="card o7 g-board" id="board"></section>
     </div>
   </div>
 
@@ -808,11 +827,11 @@ function dashboard(st) {
     const avail = bal - reserved, earned2 = d.total_earned;
     const pctUsed = earned2 ? Math.min(100, Math.round((used / earned2) * 100)) : 0;
     walletEl.innerHTML = `<div class="ch" style="margin-bottom:8px"><h2>Miles wallet</h2><span class="r">${used > 0 ? pctUsed + "% used" : "Nothing used yet"}</span></div>
-      <div class="row3"><div class="c"><b>${fmt(earned2)}</b><span>Earned</span></div>
+      <div class="wr"><div class="row3"><div class="c"><b>${fmt(earned2)}</b><span>Earned</span></div>
         <div class="c u"><b>${fmt(used)}</b><span>Used${reserved ? " (incl. requested)" : ""}</span></div>
         <div class="c a"><b>${fmt(avail)}</b><span>Available</span></div></div>
       <div class="stk"><i style="width:${100 - pctUsed}%;background:linear-gradient(90deg,#ee3a52,#c4182f)"></i><i style="width:${pctUsed}%;background:#4d5260"></i></div>
-      <div class="lgd"><span><s style="background:#d71f3a"></s>Available</span><span><s style="background:#4d5260"></s>Used on rewards</span></div>`;
+      <div class="lgd"><span><s style="background:#d71f3a"></s>Available</span><span><s style="background:#4d5260"></s>Used on rewards</span></div></div>`;
     const ringNum = document.querySelector(".ring .n"); if (ringNum) ringNum.textContent = fmt(avail);
     const mb = document.getElementById("mbal"); if (mb) mb.textContent = fmt(avail);
   };
@@ -825,9 +844,9 @@ function dashboard(st) {
     const inTop = list.some((x) => x.you);
     boardEl.innerHTML = `<div class="ch"><h2>${ic("award")} Leaderboard</h2>
       <div class="tabs"><button type="button" data-b="week" class="${boardTab === "week" ? "on" : ""}">This week</button><button type="button" data-b="all" class="${boardTab === "all" ? "on" : ""}">All time</button></div></div>
-      ${list.length ? list.map((x) => `<div class="lb r${x.r} ${x.you ? "me" : ""}"><div class="rk">${x.r}</div><div class="nm">${esc(x.n)}</div><div class="mm">${fmt(x.m)}</div></div>`).join("")
+      ${list.length ? `<div class="lbs">` + list.map((x) => `<div class="lb r${x.r} ${x.you ? "me" : ""}"><div class="rk">${x.r}</div><div class="nm">${esc(x.n)}</div><div class="mm">${fmt(x.m)}</div></div>`).join("") + `</div>`
         : '<div class="say">No Miles on the board yet. Be the first.</div>'}
-      ${me && !inTop ? `<div class="lb me"><div class="rk">${me.r}</div><div class="nm">${esc((d.name || "").split(" ")[0] || "You")}</div><div class="mm">${fmt(me.m)}</div></div>` : ""}
+      ${me && !inTop ? `<div class="lbs" style="margin-top:12px;grid-template-columns:1fr"><div class="lb me" style="flex-direction:row;text-align:left"><div class="rk">${me.r}</div><div class="nm">${esc((d.name || "").split(" ")[0] || "You")}</div><div class="mm">${fmt(me.m)}</div></div></div>` : ""}
       <div class="lbf">${me ? `You are #${me.r} of ${me.of} in your batch` : ""}</div>`;
     boardEl.querySelectorAll("[data-b]").forEach((b) => b.addEventListener("click", () => { boardTab = b.dataset.b; paintBoard(); }));
   };
