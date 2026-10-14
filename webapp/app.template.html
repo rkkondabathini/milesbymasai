@@ -33,6 +33,7 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .mini{position:fixed;left:0;right:0;top:var(--ub);z-index:35;background:linear-gradient(100deg,#b8182c,#5a1019 70%,#1d2129);color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25);transform:translateY(-110%);transition:transform .25s ease}
 .mini.on{transform:none}
 .mini .in{max-width:1120px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+@media(min-width:1000px){.mini .in{padding:10px 32px}}
 .mini .lg2{font-family:Poppins,var(--font);font-weight:800;font-size:19px;letter-spacing:-.5px;line-height:1}
 .mini .lg2 span{font-weight:300;font-size:12px;letter-spacing:.14em;margin-left:6px;opacity:.9}
 .mini .st{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:14px}
@@ -40,7 +41,7 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .mini .chp{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:6px 12px;font-weight:600;font-size:14px;white-space:nowrap}
 .mini button{height:38px;border-radius:11px;border:0;font:600 14px var(--font);cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:0 14px}
 .mini .rs{background:#fff;color:#b01c2e}
-.mini .so{background:none;color:rgba(255,255,255,.75);border:0;padding:0 4px;font-weight:500;font-size:13px}
+.mini .so{background:none;color:rgba(255,255,255,.75);border:0;padding:0 2px 0 6px;height:38px;gap:6px;font-weight:500;font-size:13px;line-height:1}
 .mini .so:hover{color:#fff;text-decoration:underline}
 .mini .i{width:16px;height:16px}
 @media(max-width:700px){.mini .lg2 span,.mini .so .t{display:none}.mini .chp{padding:6px 10px}}
@@ -51,10 +52,10 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .sob{display:inline-flex;align-items:center;gap:6px;order:2;margin-left:auto;height:auto;padding:4px 2px;background:none;border:0;color:rgba(255,255,255,.72);font:500 13px var(--font);cursor:pointer;white-space:nowrap}
 .sob .i{width:14px;height:14px}
 .sob:hover{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.trc{display:contents}
 .top .logo{order:1}.top .alert{order:3;flex-basis:100%;max-width:none}
 .top{align-items:center}
-@media(min-width:1000px){.top .alert{order:2;flex-basis:auto;max-width:400px;margin-left:auto}.sob{order:3;margin-left:0}}
-.so{position:absolute;right:16px;top:0}
+@media(min-width:1000px){.top{align-items:flex-start}.trc{order:2;display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-left:auto}.top .alert{order:0;flex-basis:auto;max-width:400px;margin-left:0}.sob{order:0;margin:0}}
 .hero{display:grid;grid-template-columns:1fr;gap:24px;margin-top:28px;align-items:center;justify-items:center;text-align:center}
 .ph{display:none}
 .greet small{display:block;font-size:22px;font-weight:300;opacity:.95;white-space:nowrap}
@@ -282,31 +283,37 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .stn{margin:14px 2px 0;font-size:13px;color:var(--mut);text-align:center}
 .jump{display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:#fff;color:#b01c2e;border:0;border-radius:12px;padding:10px 16px;font:700 14px var(--font);cursor:pointer}
 .jump .i{width:16px;height:16px}
-/* wallet + leaderboard */
-.wl{padding:18px 20px}
-.wl .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
-.wl .c{border-radius:14px;padding:12px 10px;text-align:center;background:#f6f6f8}
-.wl .c b{display:block;font-size:22px;font-weight:600;line-height:1.15}
-.wl .c span{display:block;font-size:12px;color:var(--mut);margin-top:2px}
-.wl .c.a{background:#fdecef}.wl .c.a b{color:#b01c2e}
-.wl .c.u{background:#eceef1}
-.wl .stk{display:flex;height:12px;border-radius:99px;overflow:hidden;background:#eceef2;margin:16px 0 4px}
-.wl .stk i{display:block;height:100%}
-.wl .lgd{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:8px;flex-wrap:wrap}
-.wl .lgd s{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;text-decoration:none;vertical-align:-1px}
+/* ring legend + leaderboard */
+.rleg{display:flex;gap:16px;justify-content:center;margin-top:12px;font-size:13px;color:rgba(255,255,255,.85)}
+.rleg b{font-weight:600;color:#fff}
+.rleg s{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;text-decoration:none;vertical-align:-1px}
+.rleg s.a{background:#ff4d63}.rleg s.u{background:rgba(255,255,255,.55)}
 .tabs{display:inline-flex;background:#f1f2f5;border-radius:99px;padding:3px}
 .tabs button{border:0;background:none;font:600 13px var(--font);padding:6px 12px;border-radius:99px;color:var(--mut);cursor:pointer}
 .tabs button.on{background:#fff;color:#b01c2e;box-shadow:0 1px 4px rgba(0,0,0,.1)}
-.lb{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
-.lb:first-of-type{border-top:0}
-.lb .rk{flex:none;width:34px;height:34px;border-radius:50%;background:#f1f2f5;color:var(--mut);font-weight:700;display:flex;align-items:center;justify-content:center}
-.lb.r1 .rk{background:#d4a017;color:#fff}.lb.r2 .rk{background:#a7adb8;color:#fff}.lb.r3 .rk{background:#b9774a;color:#fff}
-.lb .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lb .mm{font-weight:600;font-variant-numeric:tabular-nums}
-.lb.me{background:#fdecef;margin:0 -12px;padding:10px 12px;border-radius:12px;border-top-color:transparent}
-.lb.me .rk{background:var(--red);color:#fff}
-.lb.me .nm:after{content:" · You";color:#b01c2e;font-weight:700}
-.lbf{margin-top:10px;text-align:center;font-size:13px;color:var(--mut)}
+.lbw{display:grid;grid-template-columns:1fr;gap:18px;align-items:end}
+.pod{display:flex;align-items:flex-end;justify-content:center;gap:10px;padding-top:6px}
+.pdi{flex:1;max-width:190px;text-align:center;min-width:0}
+.pdi .av{width:54px;height:54px;border-radius:50%;margin:0 auto 8px;background:#f1f2f5;color:#4d5260;font-weight:700;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(20,22,31,.12)}
+.pdi.r1 .av{width:64px;height:64px;font-size:20px;background:#fdecef;color:#b01c2e;box-shadow:0 0 0 3px #e0243e}
+.pdi.me .av{background:#e0243e;color:#fff}
+.pdi .pn{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdi .pm{font-weight:700;font-size:15px;margin:2px 0 8px;font-variant-numeric:tabular-nums}
+.pdi .pb2{display:flex;align-items:flex-start;justify-content:center;padding-top:8px;border-radius:12px 12px 0 0;background:linear-gradient(180deg,#f3b8c1,#fdecef);color:#b01c2e;font-weight:800;font-size:20px}
+.pdi.r1 .pb2{height:84px;background:linear-gradient(180deg,#e0243e,#f7a3ae);color:#fff}
+.pdi.r2 .pb2{height:62px}
+.pdi.r3 .pb2{height:46px}
+.pdi em,.lr em{font-style:normal;font-size:11px;font-weight:700;color:#fff;background:#e0243e;border-radius:99px;padding:1px 7px;margin-left:4px;vertical-align:1px}
+.lrs{display:flex;flex-direction:column;gap:8px}
+.lr{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;background:#f6f6f8}
+.lr .rk{flex:none;width:30px;height:30px;border-radius:50%;background:#fff;color:#4d5260;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(20,22,31,.1)}
+.lr .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lr .mm{font-weight:700;font-variant-numeric:tabular-nums}
+.lr.me{background:#fdecef;box-shadow:inset 0 0 0 1.5px #f3b8c1}
+.lr.me .rk{background:#e0243e;color:#fff}
+.myr{margin-top:4px;text-align:center;font-size:14px;color:var(--mut)}
+.myr b{color:#b01c2e;font-size:18px}
+@media(min-width:760px){.lbw{grid-template-columns:1.1fr 1fr}.lrs{align-self:center}}
 /* store modal + redeem dialog */
 .mdl,.dlg{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:16px}
 .dlg{z-index:60}
@@ -419,31 +426,23 @@ details.fq.more{display:none}
   .hd{padding:24px 0 64px}
   .logo .m{font-size:54px}.logo .b{font-size:16px}
   .alert{width:auto;min-width:340px;max-width:400px}
-  .hero{grid-template-columns:auto auto calc((100% - 24px) / 2);justify-content:space-between;justify-items:start;text-align:left;margin-top:44px;align-items:center;gap:0}
+  .hero{grid-template-columns:auto auto calc((100% - 24px) / 2);justify-content:space-between;justify-items:start;text-align:left;margin-top:22px;align-items:center;gap:0}
   .ph{display:block}
   .ringw{justify-self:center}
   .greet h1{font-size:44px}
   
   .ring{width:210px;height:210px}.ring svg{width:210px;height:210px}.ring .n{font-size:44px}
-  .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch;margin-top:-358px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch;margin-top:-380px}
   .col{display:contents}
   .cols>.col>*,.cols>.col>.tiles{min-width:0}
   .g-week{grid-column:2;grid-row:1}
-  .g-wallet{grid-column:1/-1;grid-row:2}
-  .g-tiles{grid-column:1;grid-row:3}
-  .g-prog{grid-column:2;grid-row:3}
-  .g-path{grid-column:1;grid-row:4}
-  .g-todo{grid-column:2;grid-row:4}
-  .g-board{grid-column:1/-1;grid-row:5}
+  .g-tiles{grid-column:1;grid-row:2}
+  .g-prog{grid-column:2;grid-row:2}
+  .g-path{grid-column:1;grid-row:3}
+  .g-todo{grid-column:2;grid-row:3}
+  .g-board{grid-column:1/-1;grid-row:4}
   .tiles{height:100%}
   .tile{display:flex;flex-direction:column;justify-content:center}
-  .wl{display:grid;grid-template-columns:minmax(150px,.7fr) 2.2fr;column-gap:28px;align-items:center}
-  .wl .ch{margin:0!important;align-self:center;flex-direction:column;align-items:flex-start;gap:4px}
-  .wl .wr{min-width:0}
-  .lbs{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-  .lb{flex-direction:column;text-align:center;border:1px solid var(--line)!important;border-radius:14px;padding:16px 8px!important;margin:0!important;gap:8px}
-  .lb .nm{flex:none;max-width:100%}
-  .lb.me{background:#fdecef;border-color:#f3b8c1!important}
   .bds{grid-template-columns:repeat(6,1fr)}
 }
 </style>
@@ -601,12 +600,13 @@ function dashboard(st) {
   else al = ["fire", `${dl} day${dl === 1 ? "" : "s"} left to start your streak`, `Earn ${thr} Miles and every Mile this week gets ×${mults[0]}`, urgent ? "hot" : ""];
   const sub = metNow ? "You're on fire. Keep it going!" : "Small steps. Big dreams. Keep going!";
 
-  // ring
+  // ring: whole ring = Miles earned; red arc = still available, grey = used on rewards
   const r = 82, circ = 2 * Math.PI * r;
+  const usedNow = d.total_redeemed, availPct0 = earned ? Math.round(((earned - usedNow) / earned) * 100) : 0;
   const ring = `<svg width="190" height="190" viewBox="0 0 190 190"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a8a"/><stop offset="1" stop-color="#e0243e"/></linearGradient></defs>
-    <circle cx="95" cy="95" r="${r}" stroke="rgba(255,255,255,.13)" stroke-width="14" fill="none"/>
+    <circle id="ringbg" cx="95" cy="95" r="${r}" stroke="rgba(255,255,255,${usedNow > 0 ? ".42" : ".13"})" stroke-width="14" fill="none"/>
     <circle id="ringfg" cx="95" cy="95" r="${r}" stroke="url(#rg)" stroke-width="14" fill="none" stroke-linecap="round"
-    stroke-dasharray="${circ}" stroke-dashoffset="${circ}" data-c="${circ}" data-pct="${lvlPct}" style="transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)"/></svg>`;
+    stroke-dasharray="${circ}" stroke-dashoffset="${circ}" data-c="${circ}" data-pct="${availPct0}" style="transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)"/></svg>`;
 
   // levels / rewards
   const tiers = LEVELS.slice(1).map((l) => ({ l, rs: rewards.filter((x) => x.cost === l.at) })).filter((x) => x.rs.length);
@@ -652,12 +652,15 @@ function dashboard(st) {
   <header class="hd"><svg class="wave" viewBox="0 0 800 140" preserveAspectRatio="none" aria-hidden="true"><path d="M0 140 C140 30 340 20 560 140 Z" fill="rgba(48,8,16,.55)"/><path d="M0 140 C90 70 220 60 360 140 Z" fill="rgba(30,6,12,.5)"/></svg><div class="w" style="position:relative">
     <div class="top">
       <div class="logo"><span class="m">miles</span><span class="b">by masai</span></div>
-      <button class="sob" id="out" type="button">${ic("out")} <span>Sign out</span></button>
-      <div class="alert ${al[3]}"><div class="ic">${ic(al[0])}</div><div><b>${esc(al[1])}</b><span>${esc(al[2])}</span></div>${ic("go", "go")}</div>
+      <div class="trc">
+        <div class="alert ${al[3]}"><div class="ic">${ic(al[0])}</div><div><b>${esc(al[1])}</b><span>${esc(al[2])}</span></div>${ic("go", "go")}</div>
+        <button class="sob" id="out" type="button">${ic("out")} <span>Sign out</span></button>
+      </div>
     </div>
     <div class="hero">
       <div class="greet"><small>Good to see you back,</small><h1>${esc(first)}!</h1><p>${esc(sub)}</p></div>
       <div class="ringw"><div class="ring">${ring}<div class="c"><div class="n" data-count="${bal}">0</div><div class="u">MILES</div></div></div>
+        <div class="rleg" id="rleg"></div>
         <div class="lvl"><span style="display:flex;color:${(TH[lvl.name] || { l: "#7ee2a8" }).l}">${ic(lvl.ic)}</span> Level ${li + 1} · ${lvl.name}</div>
         <div class="lvl-n">${nxtL ? fmt(nxtL.at - earned) + " Miles to <span style=\"display:flex;color:" + TH[nxtL.name].l + "\">" + ic(nxtL.ic) + "</span><b style=\"font-weight:600\">" + nxtL.name + "</b>" : "Top level reached"}</div>
         <button class="jump" id="jump" type="button">${ic("cart")} Rewards store</button></div>
@@ -668,7 +671,6 @@ function dashboard(st) {
 
   <main class="w"><div class="cols">
     <div class="col l">
-      <section class="card wl o2 g-wallet" id="wallet"></section>
       <div class="tiles o3 g-tiles">
         <div class="tile s"><div class="ib">${ic("fire")}</div><div class="l">Week Streak</div><div class="v">${streak}</div>
           ${metNow ? `<span class="btnp ok">Locked in this week</span>` : `<span class="btnp">${streak ? "Hit " + thr + " to keep it" : "Hit " + thr + " to start"}</span>`}</div>
@@ -820,19 +822,17 @@ function dashboard(st) {
     });
   };
 
-  // ---- wallet (earned / used / available) and leaderboard
-  const walletEl = document.getElementById("wallet");
+  // ---- ring state (earned / used / available) and leaderboard
   const paintWallet = () => {
     const reserved = myReq.reduce((a, p) => a + p.cost, 0), used = d.total_redeemed + reserved;
     const avail = bal - reserved, earned2 = d.total_earned;
-    const pctUsed = earned2 ? Math.min(100, Math.round((used / earned2) * 100)) : 0;
-    walletEl.innerHTML = `<div class="ch" style="margin-bottom:8px"><h2>Miles wallet</h2><span class="r">${used > 0 ? pctUsed + "% used" : "Nothing used yet"}</span></div>
-      <div class="wr"><div class="row3"><div class="c"><b>${fmt(earned2)}</b><span>Earned</span></div>
-        <div class="c u"><b>${fmt(used)}</b><span>Used${reserved ? " (incl. requested)" : ""}</span></div>
-        <div class="c a"><b>${fmt(avail)}</b><span>Available</span></div></div>
-      <div class="stk"><i style="width:${100 - pctUsed}%;background:linear-gradient(90deg,#ee3a52,#c4182f)"></i><i style="width:${pctUsed}%;background:#4d5260"></i></div>
-      <div class="lgd"><span><s style="background:#d71f3a"></s>Available</span><span><s style="background:#4d5260"></s>Used on rewards</span></div></div>`;
-    const ringNum = document.querySelector(".ring .n"); if (ringNum) ringNum.textContent = fmt(avail);
+    const pct = earned2 ? Math.max(0, Math.min(100, Math.round((avail / earned2) * 100))) : 0;
+    const rf = document.getElementById("ringfg"), bg = document.getElementById("ringbg");
+    if (rf) { rf.dataset.pct = pct; rf.style.strokeDashoffset = (+rf.dataset.c) * (1 - pct / 100); }
+    if (bg) bg.setAttribute("stroke", used > 0 ? "rgba(255,255,255,.42)" : "rgba(255,255,255,.13)");
+    const n = document.querySelector(".ring .n"); if (n) { n.removeAttribute("data-count"); n.textContent = fmt(avail); }
+    const leg = document.getElementById("rleg");
+    if (leg) leg.innerHTML = `<span><s class="a"></s><b>${fmt(avail)}</b> available</span><span><s class="u"></s><b>${fmt(used)}</b> used</span>`;
     const mb = document.getElementById("mbal"); if (mb) mb.textContent = fmt(avail);
   };
   const boardEl = document.getElementById("board");
@@ -842,12 +842,19 @@ function dashboard(st) {
     const list = lb[boardTab] || [];
     const me = rk[boardTab];
     const inTop = list.some((x) => x.you);
+    const ini = (n) => esc((n || "?").split(" ").map((w) => w[0]).join("").replace(/\./g, "").slice(0, 2).toUpperCase());
+    const top3 = list.slice(0, 3), rest = list.slice(3);
+    const order = top3.length === 3 ? [top3[1], top3[0], top3[2]] : top3;
+    const pod = order.map((x) => `<div class="pdi r${x.r} ${x.you ? "me" : ""}"><div class="av">${ini(x.n)}</div>
+      <div class="pn">${esc(x.n)}${x.you ? ' <em>You</em>' : ""}</div><div class="pm">${fmt(x.m)}</div>
+      <div class="pb2"><span>${x.r}</span></div></div>`).join("");
+    const row = (x) => `<div class="lr ${x.you ? "me" : ""}"><span class="rk">${x.r}</span><span class="nm">${esc(x.n)}${x.you ? " <em>You</em>" : ""}</span><span class="mm">${fmt(x.m)}</span></div>`;
     boardEl.innerHTML = `<div class="ch"><h2>${ic("award")} Leaderboard</h2>
       <div class="tabs"><button type="button" data-b="week" class="${boardTab === "week" ? "on" : ""}">This week</button><button type="button" data-b="all" class="${boardTab === "all" ? "on" : ""}">All time</button></div></div>
-      ${list.length ? `<div class="lbs">` + list.map((x) => `<div class="lb r${x.r} ${x.you ? "me" : ""}"><div class="rk">${x.r}</div><div class="nm">${esc(x.n)}</div><div class="mm">${fmt(x.m)}</div></div>`).join("") + `</div>`
-        : '<div class="say">No Miles on the board yet. Be the first.</div>'}
-      ${me && !inTop ? `<div class="lbs" style="margin-top:12px;grid-template-columns:1fr"><div class="lb me" style="flex-direction:row;text-align:left"><div class="rk">${me.r}</div><div class="nm">${esc((d.name || "").split(" ")[0] || "You")}</div><div class="mm">${fmt(me.m)}</div></div></div>` : ""}
-      <div class="lbf">${me ? `You are #${me.r} of ${me.of} in your batch` : ""}</div>`;
+      ${list.length ? `<div class="lbw"><div class="pod">${pod}</div>
+        <div class="lrs">${rest.map(row).join("")}${me && !inTop ? `<div class="lr me"><span class="rk">${me.r}</span><span class="nm">${esc((d.name || "").split(" ")[0] || "You")} <em>You</em></span><span class="mm">${fmt(me.m)}</span></div>` : ""}
+          ${me ? `<div class="myr">Your rank <b>#${me.r}</b></div>` : ""}</div></div>`
+        : '<div class="say">No Miles on the board yet. Be the first.</div>'}`;
     boardEl.querySelectorAll("[data-b]").forEach((b) => b.addEventListener("click", () => { boardTab = b.dataset.b; paintBoard(); }));
   };
   paintWallet(); paintBoard();
