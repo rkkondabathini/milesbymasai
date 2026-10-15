@@ -30,8 +30,9 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .alert.ok .ic{color:#6ee7a0}.alert.ok .ic .i{fill:#6ee7a0}
 .alert .go{margin-left:auto;opacity:.8;width:18px;height:18px}
 .top{gap:12px}
-.mini{position:fixed;left:0;right:0;top:var(--ub);z-index:35;background:linear-gradient(100deg,#b8182c,#5a1019 70%,#1d2129);color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25);transform:translateY(-110%);transition:transform .25s ease}
-.mini.on{transform:none}
+.mini{position:fixed;left:0;right:0;top:var(--ub);z-index:35;background:linear-gradient(100deg,#b8182c,#5a1019 70%,#1d2129);color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25);
+  visibility:hidden;pointer-events:none;transform:translateY(-100%);transition:transform .22s ease,visibility 0s linear .22s}
+.mini.on{visibility:visible;pointer-events:auto;transform:none;transition:transform .22s ease,visibility 0s}
 .mini .in{max-width:1120px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
 @media(min-width:1000px){.mini .in{padding:10px 32px}}
 .mini .lg2{font-family:Poppins,var(--font);font-weight:800;font-size:19px;letter-spacing:-.5px;line-height:1}
