@@ -18,3 +18,7 @@ webapp/redeem_webhook.gs
 node_modules/
 __pycache__/
 v/
+
+# commercial data
+data/input/revenue.csv
+data/input/placement_eligibility.csv

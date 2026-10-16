@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Miles cost playground</title>
+<style>
+:root{--red:#d71f3a;--red-d:#a31a2d;--ink:#14161f;--mut:#6b7280;--line:#e6e8ee;--bg:#f5f6f9;--card:#fff;--pink:#fdecef;--amber:#fff4d6;--font:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:var(--font);font-size:14px;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+header{background:linear-gradient(110deg,#b8182c,#5a1019 65%,#1d2129);color:#fff;padding:14px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{margin:0;font-size:18px}header small{opacity:.8}
+.btn{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;border-radius:9px;padding:7px 12px;font:600 13px var(--font);cursor:pointer}
+.btn.d{border-color:var(--line);background:#fff;color:var(--ink)}
+.wrap{display:grid;grid-template-columns:minmax(360px,400px) minmax(0,1fr);gap:16px;padding:16px 22px;align-items:start}
+@media(max-width:1000px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 1px 6px rgba(20,22,31,.06);margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mut)}
+input[type=number],select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:8px;font:500 14px var(--font);color:var(--ink);background:#fff}
+input[type=number]:focus{outline:2px solid #f3b8c1}
+.chg{background:var(--amber)}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi{border-radius:12px;padding:12px;background:#f6f6f8}
+.kpi.hi{background:var(--pink)}
+.kpi small{display:block;color:var(--mut);font-size:12px}
+.kpi b{display:block;font-size:22px;margin-top:2px}
+.kpi span{font-size:12px;color:var(--mut)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row.sb{justify-content:space-between}
+.sl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+input[type=range]{accent-color:var(--red)}
+table{width:100%;border-collapse:collapse}
+th,td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);position:sticky;top:0;background:#fff}
+td.pct{font-weight:700}
+.p1{color:#1a8f58}.p2{color:#b86e00}.p3{color:#c4182f}
+tr.tot td{font-weight:700;border-top:2px solid var(--ink);background:#fafafc}
+.rwwrap{max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.rw th,.rw td{padding:5px 6px}
+.rw td input[type=number]{padding:4px 5px;width:70px;font-size:13px}
+.rw{font-size:13px}.rw td.n{min-width:120px}
+.rw td.n{text-align:left;white-space:normal;min-width:170px}
+.tbd{color:#c4182f;font-size:11px}
+.note{color:var(--mut);font-size:12px;margin-top:8px;line-height:1.5}
+.res{overflow:auto}
+input.fee{width:76px;padding:4px 6px}
+#tbl table{font-size:13px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Miles cost playground</h1><small>Change anything on the left. Cost per batch recalculates instantly. Yellow = changed from the default.</small></div>
+  <div class="row"><button class="btn" id="preset">Doubt session → 5,000 Miles</button><button class="btn" id="reset">Reset all</button><button class="btn" id="csv">Download table (CSV)</button></div>
+</header>
+<div class="wrap">
+  <div>
+    <div class="card"><h2>1 · Miles per activity</h2>
+      <div class="grid2" id="rates"></div>
+      <label class="f" style="margin-top:10px">Streak boost on everyone's Miles (1.0 = none, 1.15 ≈ typical)<input type="number" id="boost" step="0.05" min="1" max="1.5"></label>
+    </div>
+    <div class="card"><h2>2 · How many claim, and how often</h2>
+      <div class="sl"><span style="min-width:120px">Students who redeem</span><input type="range" id="share" min="5" max="100" step="5" style="flex:1"><b id="shareV" style="width:44px;text-align:right"></b></div>
+      <label class="f" style="margin-top:10px">Worst case: a student may claim each repeatable reward up to…
+        <select id="cap"><option value="1">1 time (no repeats)</option><option value="2">2 times</option><option value="3">3 times</option><option value="5">5 times</option><option value="0">unlimited</option></select></label>
+      <div class="note">Tick <b>Repeat</b> in the reward list to say which rewards can be claimed more than once.</div>
+    </div>
+    <div class="card"><h2>3 · Rewards: Miles needed and cost to Masai</h2>
+      <div class="row sb" style="margin-bottom:8px"><label class="row" style="gap:6px"><input type="checkbox" id="gear"> Include suggested gear, vouchers &amp; access items</label><button class="btn d" id="add">+ Add reward</button></div>
+      <div class="rwwrap"><table class="rw"><thead><tr><th>Reward</th><th>Miles</th><th>Cost ₹</th><th>Repeat</th><th>On</th></tr></thead><tbody id="rwb"></tbody></table></div>
+      <div class="note">Cost = what the reward costs Masai when claimed. A reward with cost 0 is ignored (it adds no cost). <span class="tbd">Red "?"</span> = cost not confirmed yet, counted as 0.</div>
+    </div>
+  </div>
+  <div>
+    <div class="card"><h2>Total, all batches</h2><div class="sum" id="kpis"></div>
+      <div class="legend"><span><b class="p1">green</b> under 10% of revenue</span><span><b class="p2">amber</b> 10–25%</span><span><b class="p3">red</b> over 25%</span></div></div>
+    <div class="card res"><h2>Cost per batch</h2><div id="tbl"></div>
+      <div class="note"><b>Low</b> = every student who can claim takes the <i>cheapest</i> paid reward. <b>High</b> = each takes the <i>costliest</i> reward they can afford, once. <b>Worst case</b> = each spends all Miles on the costliest mix, repeating repeatable rewards up to the limit chosen. All three are multiplied by the share who redeem. Revenue = fee per student × students in the batch (edit the fee in the table).</div></div>
+  </div>
+</div>
+<script>
+const DATA = __DATA__;
+/*PURE_START*/
+function gcd(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
+function milesOf(row, R, boost) {
+  return Math.floor((row[0] * R.ml + row[1] * R.mr + row[2] * R.nl + row[3] * R.nr + row[4] * R.p + row[5] * R.ga + row[6] * R.ge + row[7] * R.me) * boost);
+}
+function bestTable(items, cap, maxUnits, unit) {
+  const best = new Array(maxUnits + 1).fill(0);
+  for (const it of items) {
+    const w = Math.round(it.miles / unit);
+    if (w < 1 || w > maxUnits) continue;
+    if (it.rep && cap === 0) { for (let x = w; x <= maxUnits; x++) best[x] = Math.max(best[x], best[x - w] + it.cost); }
+    else { const copies = it.rep ? cap : 1; for (let k = 0; k < copies; k++) for (let x = maxUnits; x >= w; x--) best[x] = Math.max(best[x], best[x - w] + it.cost); }
+  }
+  return best;
+}
+function computeAll(S, D) {
+  const R = S.rates, items = S.rewards.filter((r) => r.on && r.cost > 0 && r.miles > 0);
+  let unit = 0; items.forEach((r) => { unit = gcd(unit, Math.round(r.miles)); });
+  unit = Math.max(unit, 50);
+  const perBatch = D.batches.map((b) => b.rows.map((row) => milesOf(row, R, S.boost)));
+  const top = Math.max(0, ...perBatch.map((a) => Math.max(0, ...a)));
+  const table = bestTable(items, S.cap, Math.floor(top / unit), unit);
+  const out = D.batches.map((b, i) => {
+    let low = 0, high = 0, worst = 0, elig = 0, tot = 0;
+    for (const m of perBatch[i]) {
+      tot += m;
+      let lo = Infinity, hi = 0;
+      for (const it of items) if (it.miles <= m) { if (it.cost < lo) lo = it.cost; if (it.cost > hi) hi = it.cost; }
+      if (hi > 0) { elig++; low += lo; high += hi; worst += table[Math.floor(m / unit)]; }
+    }
+    const n = b.rows.length, s = S.share / 100, fee = S.fee[b.name] ?? 0, revenue = fee * n;
+    return { name: b.name, n, elig, avg: n ? Math.round(tot / n) : 0, totalMiles: tot, fee, revenue,
+             low: low * s, high: high * s, worst: worst * s };
+  });
+  const T = out.reduce((a, r) => ({ n: a.n + r.n, elig: a.elig + r.elig, totalMiles: a.totalMiles + r.totalMiles, revenue: a.revenue + r.revenue,
+    low: a.low + r.low, high: a.high + r.high, worst: a.worst + r.worst }), { n: 0, elig: 0, totalMiles: 0, revenue: 0, low: 0, high: 0, worst: 0 });
+  T.avg = T.n ? Math.round(T.totalMiles / T.n) : 0;
+  return { rows: out, total: T };
+}
+/*PURE_END*/
+
+const LABELS = { ml: "Mandatory lecture, live", mr: "Mandatory lecture, recording", nl: "Other lecture, live", nr: "Other lecture, recording",
+  p: "Practice assignment", ga: "Graded assignment", ge: "Graded evaluation", me: "Mock evaluation" };
+const fresh = () => ({ rates: { ...DATA.rates }, boost: 1, share: 100, cap: 3,
+  rewards: DATA.rewards.map((r) => ({ ...r })), fee: { ...DATA.revenue }, gear: false });
+let S = fresh();
+const $ = (id) => document.getElementById(id);
+const inr = (v) => "₹" + Math.round(v).toLocaleString("en-IN");
+const lakh = (v) => "₹" + (v / 1e5).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " L";
+const cls = (p) => (p < 10 ? "p1" : p < 25 ? "p2" : "p3");
+
+function drawControls() {
+  $("rates").innerHTML = Object.keys(LABELS).map((k) => `<label class="f">${LABELS[k]}<input type="number" data-r="${k}" value="${S.rates[k]}" step="50" min="0" class="${S.rates[k] !== DATA.rates[k] ? "chg" : ""}"></label>`).join("");
+  $("boost").value = S.boost; $("boost").className = S.boost !== 1 ? "chg" : "";
+  $("share").value = S.share; $("shareV").textContent = S.share + "%"; $("cap").value = String(S.cap); $("gear").checked = S.gear;
+  drawRewards();
+}
+function drawRewards() {
+  const rows = S.rewards.map((r, i) => ({ r, i })).filter(({ r }) => S.gear || r.group === "Core" || r.group === "Custom");
+  $("rwb").innerHTML = rows.map(({ r, i }) => {
+    const d = DATA.rewards[i];
+    const mc = d && r.miles !== d.miles ? "chg" : "", cc = d && r.cost !== d.cost ? "chg" : "";
+    return `<tr><td class="n">${r.group === "Custom" ? `<input type="text" data-k="name" data-i="${i}" value="${r.name}" style="width:100%;padding:4px 6px;border:1px solid #e6e8ee;border-radius:6px">` : r.name}${r.tbd ? ' <span class="tbd">?</span>' : ""}</td>
+      <td><input type="number" data-k="miles" data-i="${i}" value="${r.miles}" step="500" min="0" class="${mc}"></td>
+      <td><input type="number" data-k="cost" data-i="${i}" value="${r.cost}" step="100" min="0" class="${cc}"></td>
+      <td style="text-align:center"><input type="checkbox" data-k="rep" data-i="${i}" ${r.rep ? "checked" : ""}></td>
+      <td style="text-align:center"><input type="checkbox" data-k="on" data-i="${i}" ${r.on ? "checked" : ""}></td></tr>`;
+  }).join("");
+}
+function render() {
+  const C = computeAll(S, DATA), T = C.total;
+  const pc = (v, rev) => (rev ? (100 * v) / rev : 0);
+  const kp = (t, v, hi) => `<div class="kpi ${hi ? "hi" : ""}"><small>${t}</small><b>${lakh(v)}</b><span>${T.revenue ? pc(v, T.revenue).toFixed(1) + "% of revenue · " : ""}${inr(T.n ? v / T.n : 0)} per student</span></div>`;
+  $("kpis").innerHTML = kp("Low", T.low) + kp("High", T.high, true) + kp("Worst case", T.worst);
+  const cell = (v, rev) => `<td>${lakh(v)}</td><td class="pct ${cls(pc(v, rev))}">${rev ? pc(v, rev).toFixed(1) + "%" : "–"}</td>`;
+  $("tbl").innerHTML = `<table><thead><tr><th>Batch</th><th>Students</th><th>Can claim</th><th>Avg Miles</th><th>Fee / student ₹</th><th>Revenue</th>
+      <th>Low</th><th>% rev</th><th>High</th><th>% rev</th><th>Worst</th><th>% rev</th><th>Worst / student</th></tr></thead><tbody>` +
+    C.rows.map((r) => `<tr><td>${r.name}</td><td>${r.n.toLocaleString("en-IN")}</td><td>${r.elig.toLocaleString("en-IN")}</td><td>${r.avg.toLocaleString("en-IN")}</td>
+      <td><input class="fee" type="number" data-fee="${r.name}" value="${r.fee}" step="500" min="0"></td><td>${lakh(r.revenue)}</td>${cell(r.low, r.revenue)}${cell(r.high, r.revenue)}${cell(r.worst, r.revenue)}<td>${inr(r.n ? r.worst / r.n : 0)}</td></tr>`).join("") +
+    `<tr class="tot"><td>All batches</td><td>${T.n.toLocaleString("en-IN")}</td><td>${T.elig.toLocaleString("en-IN")}</td><td>${T.avg.toLocaleString("en-IN")}</td><td></td><td>${lakh(T.revenue)}</td>${cell(T.low, T.revenue)}${cell(T.high, T.revenue)}${cell(T.worst, T.revenue)}<td>${inr(T.n ? T.worst / T.n : 0)}</td></tr></tbody></table>`;
+  window.__last = C;
+}
+document.addEventListener("input", (e) => {
+  const t = e.target;
+  if (t.dataset.r) { S.rates[t.dataset.r] = +t.value || 0; t.classList.toggle("chg", S.rates[t.dataset.r] !== DATA.rates[t.dataset.r]); }
+  else if (t.id === "boost") { S.boost = Math.max(1, +t.value || 1); t.classList.toggle("chg", S.boost !== 1); }
+  else if (t.id === "share") { S.share = +t.value; $("shareV").textContent = S.share + "%"; }
+  else if (t.id === "cap") S.cap = +t.value;
+  else if (t.id === "gear") { S.gear = t.checked; S.rewards.forEach((r) => { if (r.group !== "Core" && r.group !== "Custom") r.on = t.checked; }); drawRewards(); }
+  else if (t.dataset.k) {
+    const r = S.rewards[+t.dataset.i], k = t.dataset.k;
+    r[k] = t.type === "checkbox" ? t.checked : t.type === "text" ? t.value : +t.value || 0;
+    if (t.type === "number") { const d = DATA.rewards[+t.dataset.i]; t.classList.toggle("chg", !!d && r[k] !== d[k]); }
+  } else if (t.dataset.fee) S.fee[t.dataset.fee] = +t.value || 0;
+  render();
+});
+$("add").onclick = () => { S.rewards.push({ name: "New reward", miles: 5000, cost: 1000, tbd: false, rep: false, group: "Custom", on: true }); drawRewards(); render(); };
+$("reset").onclick = () => { S = fresh(); drawControls(); render(); };
+$("preset").onclick = () => { const r = S.rewards.find((x) => x.name.startsWith("1:1 doubt")); if (r) r.miles = 5000; drawRewards(); render(); };
+$("csv").onclick = () => {
+  const C = window.__last, h = ["batch", "students", "can_claim", "avg_miles", "fee_per_student", "revenue", "low", "high", "worst", "low_pct", "high_pct", "worst_pct"];
+  const q = (r) => [r.name, r.n, r.elig, r.avg, r.fee, r.revenue, Math.round(r.low), Math.round(r.high), Math.round(r.worst),
+    r.revenue ? (100 * r.low / r.revenue).toFixed(2) : "", r.revenue ? (100 * r.high / r.revenue).toFixed(2) : "", r.revenue ? (100 * r.worst / r.revenue).toFixed(2) : ""].join(",");
+  const csv = [h.join(","), ...C.rows.map(q), q({ ...C.total, name: "ALL", fee: "" })].join("\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "miles_cost_per_batch.csv"; a.click();
+};
+drawControls(); render();
+</script>
+</body>
+</html>
