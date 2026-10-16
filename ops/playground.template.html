@@ -75,9 +75,11 @@ input.fee{width:78px;padding:5px 6px;font-size:14px}
   <div><h1>Miles cost playground</h1><small>Change anything. Everything recalculates instantly. Yellow = changed from the default.</small></div>
   <div class="row">
     <span class="seg" id="unit"><button data-u="L" class="on">Lakh</button><button data-u="R">Full ₹</button></span>
+    <button class="btn" id="save" title="Download every setting as a JSON file">⬇ Save config</button><button class="btn" id="load" title="Load a saved JSON config">⬆ Load config</button><input type="file" id="file" accept=".json,application/json" style="display:none">
     <button class="btn" id="preset">Doubt session → 5,000 Miles</button><button class="btn" id="reset">Reset all</button><button class="btn" id="csv">Download table (CSV)</button>
   </div>
 </header>
+<div id="toast" style="position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#14161f;color:#fff;padding:11px 18px;border-radius:10px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);display:none;z-index:50;max-width:92vw"></div>
 
 <div class="top">
   <div>
@@ -164,7 +166,9 @@ function computeAll(S, D) {
 
 const LABELS = { ml: "Mandatory lecture, live", mr: "Mandatory lecture, recording", nl: "Other lecture, live", nr: "Other lecture, recording",
   p: "Practice assignment", ga: "Graded assignment", ge: "Graded evaluation", me: "Mock evaluation" };
-const fresh = () => { const f = { rates: { ...DATA.rates }, boost: 1, share: 100, cap: 3, auto: true, mpr: 10, rnd: 100, rewards: DATA.rewards.map((r) => ({ ...r, manual: false })), fee: { ...DATA.revenue } }; applyAuto(f); return f; };
+const baseState = () => ({ rates: { ...DATA.rates }, boost: 1, share: 100, cap: 3, auto: true, mpr: 10, rnd: 100,
+  rewards: DATA.rewards.map((r) => ({ ...r, manual: false })), fee: { ...DATA.revenue } });
+const fresh = () => { const f = baseState(); if (DATA.config) applyConfig(f, DATA.config); applyAuto(f); return f; };
 function applyAuto(St) { if (!St.auto) return; St.rewards.forEach((r) => { if (!r.manual && r.cost > 0) r.miles = Math.max(St.rnd, Math.round((r.cost * St.mpr) / St.rnd) * St.rnd); }); }
 let S = fresh(), UNIT = "L", FILTER = "";
 const collapsed = {};
@@ -173,6 +177,47 @@ const IN = (v) => Math.round(v).toLocaleString("en-IN");
 const money = (v) => (UNIT === "L" ? "₹" + (v / 1e5).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " L" : "₹" + IN(v));
 const miles = (v) => (UNIT === "L" ? (v / 1e5).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " L" : IN(v));
 const cls = (p) => (p < 10 ? "p1" : p < 25 ? "p2" : "p3");
+
+/* ---------- save / load ---------- */
+const CONFIG_VERSION = 1;
+function exportConfig() {
+  const C = computeAll(S, DATA), T = C.total;
+  return {
+    app: "miles-cost-playground", version: CONFIG_VERSION, savedAt: new Date().toISOString(),
+    settings: { milesPerActivity: { ...S.rates }, streakBoost: S.boost, shareWhoRedeem: S.share, repeatCap: S.cap,
+      autoPriceMilesFromCost: S.auto, milesPerRupee: S.mpr, roundMilesTo: S.rnd },
+    rewards: S.rewards.map((r) => ({ name: r.name, group: r.group, miles: r.miles, cost: r.cost, repeatable: !!r.rep, on: !!r.on, manualMiles: !!r.manual, costConfirmed: !r.tbd })),
+    feePerStudent: { ...S.fee },
+    dataset: { batches: DATA.batches.map((b) => ({ name: b.name, students: b.rows.length })) },
+    resultsSnapshot: { note: "informational only, recomputed on load",
+      totalStudents: T.n, revenue: Math.round(T.revenue),
+      low: Math.round(T.low), high: Math.round(T.high), worstCase: Math.round(T.worst),
+      lowMiles: Math.round(T.lowM), highMiles: Math.round(T.highM), worstMiles: Math.round(T.worstM),
+      perBatch: C.rows.map((r) => ({ batch: r.name, students: r.n, revenue: Math.round(r.revenue), low: Math.round(r.low), high: Math.round(r.high), worstCase: Math.round(r.worst) })) },
+  };
+}
+function applyConfig(St, cfg) {
+  if (!cfg || cfg.app !== "miles-cost-playground" || !cfg.settings) throw new Error("This does not look like a playground config file.");
+  const c = cfg.settings, num = (v, d) => (Number.isFinite(+v) ? +v : d);
+  Object.keys(St.rates).forEach((k) => { if (c.milesPerActivity && k in c.milesPerActivity) St.rates[k] = num(c.milesPerActivity[k], St.rates[k]); });
+  St.boost = Math.max(1, num(c.streakBoost, 1)); St.share = Math.min(100, Math.max(1, num(c.shareWhoRedeem, 100))); St.cap = num(c.repeatCap, 3);
+  St.auto = c.autoPriceMilesFromCost !== false; St.mpr = Math.max(0.1, num(c.milesPerRupee, 10)); St.rnd = num(c.roundMilesTo, 100);
+  const saved = new Map((cfg.rewards || []).map((r) => [r.name, r]));
+  St.rewards.forEach((r) => { const q = saved.get(r.name); if (!q) return;
+    r.miles = num(q.miles, r.miles); r.cost = num(q.cost, r.cost); r.rep = !!q.repeatable; r.on = q.on !== false; r.manual = !!q.manualMiles; if (q.costConfirmed) r.tbd = false; saved.delete(r.name); });
+  saved.forEach((q) => St.rewards.push({ name: q.name, group: q.group || "Custom", miles: num(q.miles, 0), cost: num(q.cost, 0), tbd: q.costConfirmed === false,
+    rep: !!q.repeatable, on: q.on !== false, manual: !!q.manualMiles }));
+  if (cfg.feePerStudent) Object.keys(cfg.feePerStudent).forEach((b) => { St.fee[b] = num(cfg.feePerStudent[b], St.fee[b] || 0); });
+  return St;
+}
+function toast(msg, ms) { const t = $("toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => (t.style.display = "none"), ms || 3500); }
+const LS = "miles-playground-session";
+function autosave() { try { localStorage.setItem(LS, JSON.stringify(exportConfig())); } catch (e) {} }
+function datasetNote(cfg) {
+  const have = new Set(DATA.batches.map((b) => b.name)), saved = ((cfg.dataset || {}).batches || []).map((b) => b.name);
+  const missing = saved.filter((n) => !have.has(n)); return missing.length ? ` ${missing.length} batch(es) in the file are not in this build and were ignored.` : "";
+}
+function drawAll() { drawRates(); drawRewards(); render(); }
 
 function drawRates() {
   $("rates").innerHTML = Object.keys(LABELS).map((k) => `<label class="f">${LABELS[k]}<input type="number" data-r="${k}" value="${S.rates[k]}" step="50" min="0" class="${S.rates[k] !== DATA.rates[k] ? "chg" : ""}"></label>`).join("");
@@ -230,6 +275,7 @@ function render() {
       <td><input class="fee" type="number" data-fee="${r.name}" value="${r.fee}" step="500" min="0"></td><td>${money(r.revenue)}</td>${cell(r.low, r.revenue, r.lowM)}${cell(r.high, r.revenue, r.highM)}${cell(r.worst, r.revenue, r.worstM)}<td class="grp">₹${IN(r.n ? r.worst / r.n : 0)}</td></tr>`).join("") +
     `<tr class="tot"><td>All batches</td><td>${IN(T.n)}</td><td>${IN(T.elig)}</td><td>${IN(T.avg)}</td><td></td><td>${money(T.revenue)}</td>${cell(T.low, T.revenue, T.lowM)}${cell(T.high, T.revenue, T.highM)}${cell(T.worst, T.revenue, T.worstM)}<td class="grp">₹${IN(T.n ? T.worst / T.n : 0)}</td></tr></tbody></table>`;
   window.__last = C;
+  autosave();
 }
 function refreshRow(i) {
   const r = S.rewards[i], d = DATA.rewards[i];
@@ -277,7 +323,6 @@ document.addEventListener("click", (e) => {
 $("add").onclick = () => { S.rewards.push({ name: "New reward", miles: 5000, cost: 1000, tbd: false, rep: false, group: "Custom", on: true, manual: false }); applyAuto(S); drawRewards(); render(); };
 $("allon").onclick = () => { S.rewards.forEach((r) => (r.on = true)); drawRewards(); render(); };
 $("alloff").onclick = () => { S.rewards.forEach((r) => (r.on = false)); drawRewards(); render(); };
-$("reset").onclick = () => { S = fresh(); FILTER = ""; $("q").value = ""; drawRates(); drawRewards(); render(); };
 $("preset").onclick = () => { const i = S.rewards.findIndex((x) => x.name.startsWith("1:1 doubt")); if (i >= 0) { S.rewards[i].miles = 5000; S.rewards[i].manual = true; drawRewards(); render(); } };
 $("csv").onclick = () => {
   const C = window.__last, h = ["batch", "students", "can_claim", "avg_miles", "fee_per_student", "revenue", "low", "low_miles", "high", "high_miles", "worst", "worst_miles", "low_pct", "high_pct", "worst_pct"];
@@ -286,6 +331,20 @@ $("csv").onclick = () => {
   const csv = [h.join(","), ...C.rows.map(q), q({ ...C.total, name: "ALL", fee: "" })].join("\n");
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "miles_cost_per_batch.csv"; a.click();
 };
+$("save").onclick = () => {
+  const cfg = exportConfig(), d = new Date(), z = (n) => String(n).padStart(2, "0");
+  const name = `miles_playground_config_${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}.json`;
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(cfg, null, 2)], { type: "application/json" })); a.download = name; a.click();
+  toast("Saved " + name + " to your Downloads folder");
+};
+$("load").onclick = () => $("file").click();
+$("file").onchange = async (e) => {
+  const f = e.target.files[0]; if (!f) return; e.target.value = "";
+  try { const cfg = JSON.parse(await f.text()); const next = baseState(); applyConfig(next, cfg); applyAuto(next); S = next; drawAll(); toast("Loaded " + f.name + "." + datasetNote(cfg), 5000); }
+  catch (err) { toast("Could not load: " + err.message, 6000); }
+};
+$("reset").onclick = () => { S = fresh(); FILTER = ""; $("q").value = ""; try { localStorage.removeItem(LS); } catch (e) {} drawAll(); toast("Reset to " + (DATA.config ? "the built-in config" : "defaults")); };
+try { const raw = localStorage.getItem(LS); if (raw) { const cfg = JSON.parse(raw), next = baseState(); applyConfig(next, cfg); S = next; toast("Restored your last session. “Reset all” clears it.", 4500); } } catch (e) {}
 drawRates(); drawRewards(); render();
 </script>
 </body>
