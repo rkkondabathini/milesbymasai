@@ -30,9 +30,17 @@ p = ROOT / "data/input/revenue.csv"
 if p.exists():
     rev = {r["batch_name"]: float(r["revenue_per_student"]) for r in csv.DictReader(open(p))}
 
-rewards = ([dict(name=n, miles=m, cost=(c or 0), tbd=c is None, rep=n in ps.REPEATABLE, group="Core", on=True) for n, m, c in ps.CORE]
-           + [dict(name=n, miles=m, cost=(c or 0), tbd=False, rep=n in ps.REPEATABLE, group="Suggested gear, vouchers, access", on=False)
-              for n, m, c in ps.SUGGESTED])
+SUG_GROUPS = [(14, "Desk setup and gear"), (21, "Audio and video"), (27, "Tech accessories and wellness"), (34, "Vouchers"),
+              (41, "Learning and career, digital"), (48, "Experiences and access"), (99, "Recognition and swag")]
+
+
+def sug_group(i):
+    return next(g for lim, g in SUG_GROUPS if i < lim)
+
+
+rewards = ([dict(name=n, miles=m, cost=(c or 0), tbd=c is None, rep=n in ps.REPEATABLE, group="Core rewards", on=True) for n, m, c in ps.CORE]
+           + [dict(name=n, miles=m, cost=(c or 0), tbd=False, rep=n in ps.REPEATABLE, group=sug_group(i), on=True)
+              for i, (n, m, c) in enumerate(ps.SUGGESTED)])
 data = dict(rates=ps.RATES, rewards=rewards, revenue=rev,
             batches=[dict(name=k, rows=v) for k, v in sorted(batches.items(), key=lambda kv: -len(kv[1]))])
 html = (Path(__file__).with_name("playground.template.html").read_text()
