@@ -14,7 +14,7 @@ import payout_sim as ps
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--config", required=True)
-ap.add_argument("--pilot", required=True, help="export with the pilot batches")
+ap.add_argument("--pilot", required=True, help="export with the concluded batches to simulate")
 ap.add_argument("--programme", required=True, help="export with all live batches (for the scale view)")
 ap.add_argument("--fee", action="append", default=[], help="BATCH=fee_per_student, for batches missing from the config")
 ap.add_argument("--out", default=str(Path(__file__).resolve().parent.parent / "data/output/leadership"))
@@ -86,7 +86,7 @@ def short(b):
 
 # ------------------------------------------------------------------ charts (inline SVG)
 def chart_distribution():
-    W, H, ml, mr, mt, mb = 760, 290, 44, 16, 56, 38
+    W, H, ml, mr, mt, mb = 760, 215, 44, 16, 10, 36
     BIN, XMAX = 2500, 47500
     nb = XMAX // BIN
     series = []
@@ -105,38 +105,35 @@ def chart_distribution():
     for m in range(0, XMAX + 1, 5000):
         g.append(f'<text x="{X(m)}" y="{H - mb + 18}" text-anchor="middle" font-size="11" fill="{MUT}">{m // 1000}k</text>')
     g.append(f'<text x="{(ml + W - mr) / 2}" y="{H - 6}" text-anchor="middle" font-size="11" fill="{MUT}">Miles earned per student</text>')
-    marks = [(1500, "Sticker pack"), (5000, "T-shirt"), (10000, "Online course"), (15000, "1:1 session"), (20000, "AI tool"), (40000, "IM session")]
-    for i, (m, lab) in enumerate(marks):
-        yy = 14 + (i % 2) * 15
-        g.append(f'<line x1="{X(m)}" x2="{X(m)}" y1="{mt - 14}" y2="{H - mb}" stroke="{INK}" stroke-opacity=".25" stroke-dasharray="3 3"/>'
-                 f'<text x="{X(m)}" y="{yy + 10}" text-anchor="middle" font-size="10.5" font-weight="600" fill="{INK}">{esc(lab)}</text>')
     for (b, s), col in zip(series, SERIES):
         pts = [(X(i * BIN + BIN / 2), Y(v)) for i, v in enumerate(s)]
         line = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
         area = f"{X(BIN / 2):.1f},{Y(0)} {line} {X(XMAX - BIN / 2):.1f},{Y(0)}"
         g.append(f'<polygon points="{area}" fill="{col}" fill-opacity=".14"/><polyline points="{line}" fill="none" stroke="{col}" stroke-width="2.6" stroke-linejoin="round"/>')
     lg = "".join(f'<g transform="translate({ml + i * 170},{H - 28})"></g>' for i, _ in enumerate(series))
-    legend = "".join(f'<span class="lg"><i style="background:{c}"></i>{esc(b)} <b>({len(pilot[b]["miles"])})</b></span>' for (b, _), c in zip(series, SERIES))
-    return f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-label="Distribution of Miles per student">{"".join(g)}</svg><div class="legend">{legend}</div>'
+    legend = "".join(f'<span class="lg"><i style="background:{c}"></i>{esc(b)}</span>' for (b, _), c in zip(series, SERIES))
+    chips = ""
+    for b, c in zip(PILOT, SERIES):
+        m = pilot[b]["miles"]
+        chips += (f'<div class="bchip" style="border-top:4px solid {c}"><b>{esc(b)}</b><div class="bnum"><span><i>{len(m):,}</i>students</span>'
+                  f'<span><i>{sum(m) // len(m):,}</i>avg Miles</span><span><i>{int(st.median(m)):,}</i>median</span><span><i>{max(m):,}</i>highest</span></div></div>')
+    return f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-label="Distribution of Miles per student">{"".join(g)}</svg><div class="legend">{legend}</div><div class="bchips">{chips}</div>'
 
 def chart_reach():
-    marks = [(1500, "Sticker pack"), (5000, "T-shirt"), (10000, "Online course / laptop stand"), (15000, "1:1 session / backpack"), (20000, "AI tool / mechanical keyboard"), (40000, "IM session / company interview")]
-    rows = []
-    for m, lab in marks:
-        c = sum(1 for x in allm if x >= m)
-        rows.append((m, lab, c, 100 * c / N))
-    W, rh, ml = 760, 33, 118
+    marks = [1500, 5000, 10000, 15000, 20000, 40000]
+    rows = [(m, sum(1 for x in allm if x >= m), 100 * sum(1 for x in allm if x >= m) / N) for m in marks]
+    W, rh, ml = 760, 27, 90
     H = rh * len(rows) + 8
     g = []
-    for i, (m, lab, c, p) in enumerate(rows):
+    for i, (m, c, p) in enumerate(rows):
         y = 4 + i * rh
-        bw = (W - ml - 170) * p / 100
-        plabel = '<1' if 0 < p < 1 else format(p, '.0f')
+        full = W - ml - 20
+        bw = full * p / 100
+        plabel = "<1" if 0 < p < 1 else format(p, ".0f")
         g.append(f'<text x="0" y="{y + 22}" font-size="13" font-weight="700" fill="{INK}">{m:,}+</text>'
-                 f'<rect x="{ml}" y="{y + 6}" width="{W - ml - 170}" height="22" rx="11" fill="{PINK}"/>'
+                 f'<rect x="{ml}" y="{y + 6}" width="{full}" height="22" rx="11" fill="{PINK}"/>'
                  f'<rect x="{ml}" y="{y + 6}" width="{max(bw, 6):.1f}" height="22" rx="11" fill="{RED}"/>'
-                 f'<text x="{ml + max(bw, 6) + 10}" y="{y + 22}" font-size="13" font-weight="700" fill="{INK}">{plabel}% <tspan fill="{MUT}" font-weight="500">· {c:,}</tspan></text>'
-                 f'<text x="{W}" y="{y + 22}" text-anchor="end" font-size="12" fill="{MUT}">{esc(lab)}</text>')
+                 f'<text x="{ml + max(bw, 6) + 10}" y="{y + 22}" font-size="13" font-weight="700" fill="{INK}">{plabel}% <tspan fill="{MUT}" font-weight="500">· {c:,} students</tspan></text>')
     return f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-label="Share of students reaching each Miles level">{"".join(g)}</svg>'
 
 def chart_cost():
@@ -251,6 +248,13 @@ body{{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Aria
 .kpi.hi{{background:{PINK}}}
 .kpi b{{display:block;font-size:27px;letter-spacing:-.6px;line-height:1.1}}
 .kpi span{{font-size:12.5px;color:{MUT}}}
+.pill{{display:inline-block;font-weight:800;font-size:12px;border-radius:99px;padding:2px 10px;color:#fff}}
+.pill.p1{{background:#e58a99}}.pill.p2{{background:{RED}}}.pill.p3{{background:{RED_D}}}
+.bchips{{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}}
+.bchip{{background:#f6f6f8;border-radius:12px;padding:10px 12px}}
+.bchip>b{{font-size:13px}}
+.bnum{{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}}
+.bnum span{{font-size:11px;color:{MUT};line-height:1.2}}.bnum i{{display:block;font-style:normal;font-size:16px;font-weight:800;color:{INK}}}
 .legend{{display:flex;gap:18px;justify-content:center;margin-top:6px;font-size:12.5px;color:{MUT}}}
 .lg i{{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}}
 .flow{{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:center;text-align:center}}
@@ -299,23 +303,23 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
   <h1>A rewards programme built to drive learner engagement, with a cost we can cap by design.</h1></div>
 
 <div class="ask"><span class="tag">Approval sought</span>
-  <p>Launch redemption for <span>{len(PILOT)} pilot batches ({tot["n"]:,} students)</span> within a ceiling of <span>{lakh(ceiling)}</span>. Expected spend <span>{lakh(est(25))} to {lakh(est(50))}</span> if 25–50% of eligible students claim. Review at day 30.</p></div>
+  <p>Simulated on <span>{len(PILOT)} concluded batches ({tot["n"]:,} students)</span>: had Miles rewards run, they would have cost <span>{lakh(tot["high"])}</span> if every eligible student claimed once, and never more than <span>{lakh(ceiling)}</span>. Approve launching Miles rewards on this cost model.</p></div>
 
 <div class="kpis">
-  <div class="kpi"><b>{tot["n"]:,}</b><span>students in pilot</span></div>
+  <div class="kpi"><b>{tot["n"]:,}</b><span>students simulated</span></div>
   <div class="kpi"><b>{avg_m:,.0f}</b><span>avg Miles earned · median {med_m:,.0f}</span></div>
   <div class="kpi hi"><b>{lakh(tot["high"])}</b><span>cost if every eligible student claims once</span></div>
   <div class="kpi hi"><b>{lakh(tot["worst"])}</b><span>absolute ceiling (all Miles spent)</span></div>
 </div>
 
-<div class="sec"><h2>Where students stand today</h2><p class="sub">Share of each batch, by Miles earned. Dotted lines mark where rewards unlock.</p>
+<div class="sec"><h2>Where students stand</h2><p class="sub">Share of each batch, by Miles earned</p>
   {chart_distribution()}</div>
 
-<div class="sec"><h2>How many can claim a reward</h2><p class="sub">{claim_pct:.0f}% of pilot students already have enough Miles for at least one reward.</p>
+<div class="sec"><h2>Students by Miles earned</h2><p class="sub">Share at or above each Miles level</p>
   {chart_reach()}</div>
 
 <div class="pb"></div>
-<div class="sec" style="padding-top:34px"><h2>What it costs</h2><p class="sub">₹ lakh. Low: cheapest reward each. High: best reward each, once. Worst case: every Mile spent.</p>
+<div class="sec" style="padding-top:34px"><h2>What it would have cost</h2><p class="sub">₹ lakh &nbsp;·&nbsp; <span class="pill p1">Low</span> cheapest reward each &nbsp; <span class="pill p2">High</span> best reward each, once &nbsp; <span class="pill p3">Worst case</span> every Mile spent</p>
   {chart_cost()}
   <table style="margin-top:10px"><tr><th>Batch</th><th>Students</th><th>Can claim</th><th>High</th><th>% of revenue</th><th>Worst case</th><th>% of revenue</th></tr>{cost_rows}</table>
   {rev_note}</div>
@@ -326,19 +330,19 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
     <div class="fb"><b>≤ {lakh(cost_cap)}</b><span>hard ceiling</span></div></div>
   <div class="guard">Every reward is priced from its cost at the same rate, so spending <b>more Miles never costs more than ₹{1 / mpr:.2f} each</b>. Ceiling is {guard:.0f}% of Miles issued. Modelled worst case: <b>{lakh(tot["worst"])}</b>.</div></div>
 
-<div class="sec"><h2>If assumptions move</h2><p class="sub">Programme High-case cost across all {len(prog)} batches, by value of a Mile and by how many students redeem.</p>
+<div class="sec"><h2>If assumptions move</h2><p class="sub">High-case cost across all {len(prog)} batches, by value of a Mile and by how many students redeem.</p>
   {heat()}
-  <p class="foot">Selected: {mpr} Miles = ₹1, everyone redeems. At 25–50% redemption the programme costs {lakh(PT["high"] * .25)} to {lakh(PT["high"] * .5)}.</p></div>
+  <p class="foot">Highlighted: {mpr} Miles = ₹1, everyone redeems. At 25–50% redemption the cost would be {lakh(PT["high"] * .25)} to {lakh(PT["high"] * .5)}.</p></div>
 
 <div class="pb"></div>
-<div class="sec" style="padding-top:34px"><h2>Scale-up view</h2><p class="sub">If rolled out to all {len(prog)} live batches ({PT["n"]:,} students, revenue {lakh(PT["rev"])}): High case is <b>{lakh(PT["high"])} ({pct(100 * PT["high"] / PT["rev"])} of revenue)</b>; worst case {lakh(PT["worst"])} ({pct(100 * PT["worst"] / PT["rev"])}).</p>
+<div class="sec" style="padding-top:34px"><h2>Across all batches</h2><p class="sub">Applied to all {len(prog)} batches ({PT["n"]:,} students, revenue {lakh(PT["rev"])}): High case is <b>{lakh(PT["high"])} ({pct(100 * PT["high"] / PT["rev"])} of revenue)</b>; worst case {lakh(PT["worst"])} ({pct(100 * PT["worst"] / PT["rev"])}).</p>
   {chart_scale()}</div>
 
-<div class="sec"><h2>Safeguards in place</h2>
+<div class="sec"><h2>Safeguards built in</h2>
   <div class="three">
    <div class="card"><div class="ic">✓</div><b>Student confirms</b><span>Explicit consent, stored with time.</span></div>
    <div class="card"><div class="ic">▤</div><b>Every claim logged</b><span>Each request is a sheet row with a status.</span></div>
-   <div class="card"><div class="ic">⚖</div><b>Team approves</b><span>Rejected claims refund Miles automatically.</span></div>
+   <div class="card"><div class="ic">⚖</div><b>Team reviews</b><span>Can reject; Miles refunded automatically.</span></div>
    <div class="card"><div class="ic">₹</div><b>Fixed Mile value</b><span>All rewards priced at {mpr} Miles = ₹1.</span></div>
    <div class="card"><div class="ic">↻</div><b>Daily refresh</b><span>Balances and cost update every morning.</span></div>
    <div class="card"><div class="ic">⌁</div><b>Live cost model</b><span>Test any assumption instantly; save it.</span></div>
@@ -346,21 +350,21 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
 
 <div class="sec"><h2>Watch-outs, handled</h2>
   <div class="risk">
-   <div class="rk"><b>{len(unconfirmed)} premium rewards have estimated costs</b>Company interview, hiring drive. <em>Only 40,000+ Miles can reach them ({sum(1 for x in allm if x >= 40000)} today).</em></div>
+   <div class="rk"><b>{len(unconfirmed)} premium rewards have estimated costs</b>Company interview, hiring drive. <em>Only 40,000+ Miles reach them ({sum(1 for x in allm if x >= 40000)} student here).</em></div>
    <div class="rk"><b>Miles keep growing</b>Cost rises with engagement. <em>Capped at ₹{1 / mpr:.2f} per Mile.</em></div>
-   <div class="rk"><b>Redemption rate is unknown</b>We have no history yet. <em>Pilot measures it before scaling.</em></div>
+   <div class="rk"><b>Redemption rate is unknown</b>No history yet. <em>Ceiling holds at any rate; tracked from day one.</em></div>
    <div class="rk"><b>Physical rewards add logistics</b>Gear needs vendors. <em>Digital and experience rewards launch first.</em></div>
   </div></div>
 
-<div class="sec"><h2>Next 30 days</h2>
+<div class="sec"><h2>Next steps</h2>
   <div class="tl">
-   <div class="st"><i>1</i><b>Approve</b><span>ceiling and scope</span></div>
-   <div class="st"><i>2</i><b>Launch</b><span>2 pilot batches</span></div>
-   <div class="st"><i>3</i><b>Track weekly</b><span>cost vs ceiling</span></div>
-   <div class="st"><i>4</i><b>Day 30 review</b><span>scale decision</span></div>
+   <div class="st"><i>1</i><b>Approve</b><span>the cost model</span></div>
+   <div class="st"><i>2</i><b>Set up</b><span>rewards and vendors</span></div>
+   <div class="st"><i>3</i><b>Launch</b><span>with the next batch</span></div>
+   <div class="st"><i>4</i><b>Track monthly</b><span>cost vs ceiling</span></div>
   </div></div>
 
-<p class="foot">Data: Metabase export, 16 Oct 2026. No streak boost. Costs are cost to Masai per reward. Method: docs/cost_calculation.md.</p>
+<p class="foot">Retrospective simulation on concluded batches. Data: Metabase export, 16 Oct 2026. No streak boost. Costs are cost to Masai per reward. Method: docs/cost_calculation.md.</p>
 </div></body></html>"""
 
 out = Path(a.out)
