@@ -27,6 +27,8 @@ input[type=number]:focus{outline:2px solid #f3b8c1}
 .kpi small{display:block;color:var(--mut);font-size:12px}
 .kpi b{display:block;font-size:22px;margin-top:2px}
 .kpi span{font-size:12px;color:var(--mut)}
+.kpi .mm{font-size:13px;font-weight:600;margin:3px 0 4px;color:#a31a2d}.kpi .mm i{font-style:normal;font-weight:400;color:var(--mut)}
+td.m{color:var(--mut);font-size:12px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .row.sb{justify-content:space-between}
 .sl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -78,7 +80,7 @@ input.fee{width:76px;padding:4px 6px}
     <div class="card"><h2>Total, all batches</h2><div class="sum" id="kpis"></div>
       <div class="legend"><span><b class="p1">green</b> under 10% of revenue</span><span><b class="p2">amber</b> 10–25%</span><span><b class="p3">red</b> over 25%</span></div></div>
     <div class="card res"><h2>Cost per batch</h2><div id="tbl"></div>
-      <div class="note"><b>Low</b> = every student who can claim takes the <i>cheapest</i> paid reward. <b>High</b> = each takes the <i>costliest</i> reward they can afford, once. <b>Worst case</b> = each spends all Miles on the costliest mix, repeating repeatable rewards up to the limit chosen. All three are multiplied by the share who redeem. Revenue = fee per student × students in the batch (edit the fee in the table).</div></div>
+      <div class="note"><b>Miles</b> = the Miles those redemptions use up. <b>Low</b> = every student who can claim takes the <i>cheapest</i> paid reward. <b>High</b> = each takes the <i>costliest</i> reward they can afford, once. <b>Worst case</b> = each spends all Miles on the costliest mix, repeating repeatable rewards up to the limit chosen. All three are multiplied by the share who redeem. Revenue = fee per student × students in the batch (edit the fee in the table).</div></div>
   </div>
 </div>
 <script>
@@ -89,14 +91,15 @@ function milesOf(row, R, boost) {
   return Math.floor((row[0] * R.ml + row[1] * R.mr + row[2] * R.nl + row[3] * R.nr + row[4] * R.p + row[5] * R.ga + row[6] * R.ge + row[7] * R.me) * boost);
 }
 function bestTable(items, cap, maxUnits, unit) {
-  const best = new Array(maxUnits + 1).fill(0);
+  const best = new Array(maxUnits + 1).fill(0), used = new Array(maxUnits + 1).fill(0);
+  const upd = (x, w, it) => { const c = best[x - w] + it.cost; if (c > best[x]) { best[x] = c; used[x] = used[x - w] + it.miles; } };
   for (const it of items) {
     const w = Math.round(it.miles / unit);
     if (w < 1 || w > maxUnits) continue;
-    if (it.rep && cap === 0) { for (let x = w; x <= maxUnits; x++) best[x] = Math.max(best[x], best[x - w] + it.cost); }
-    else { const copies = it.rep ? cap : 1; for (let k = 0; k < copies; k++) for (let x = maxUnits; x >= w; x--) best[x] = Math.max(best[x], best[x - w] + it.cost); }
+    if (it.rep && cap === 0) { for (let x = w; x <= maxUnits; x++) upd(x, w, it); }
+    else { const copies = it.rep ? cap : 1; for (let k = 0; k < copies; k++) for (let x = maxUnits; x >= w; x--) upd(x, w, it); }
   }
-  return best;
+  return { best, used };
 }
 function computeAll(S, D) {
   const R = S.rates, items = S.rewards.filter((r) => r.on && r.cost > 0 && r.miles > 0);
@@ -104,21 +107,24 @@ function computeAll(S, D) {
   unit = Math.max(unit, 50);
   const perBatch = D.batches.map((b) => b.rows.map((row) => milesOf(row, R, S.boost)));
   const top = Math.max(0, ...perBatch.map((a) => Math.max(0, ...a)));
-  const table = bestTable(items, S.cap, Math.floor(top / unit), unit);
+  const T0 = bestTable(items, S.cap, Math.floor(top / unit), unit), table = T0.best, tUsed = T0.used;
   const out = D.batches.map((b, i) => {
-    let low = 0, high = 0, worst = 0, elig = 0, tot = 0;
+    let low = 0, high = 0, worst = 0, elig = 0, tot = 0, lowM = 0, highM = 0, worstM = 0;
     for (const m of perBatch[i]) {
       tot += m;
-      let lo = Infinity, hi = 0;
-      for (const it of items) if (it.miles <= m) { if (it.cost < lo) lo = it.cost; if (it.cost > hi) hi = it.cost; }
-      if (hi > 0) { elig++; low += lo; high += hi; worst += table[Math.floor(m / unit)]; }
+      let lo = null, hi = null;
+      for (const it of items) if (it.miles <= m) {
+        if (!lo || it.cost < lo.cost || (it.cost === lo.cost && it.miles < lo.miles)) lo = it;
+        if (!hi || it.cost > hi.cost || (it.cost === hi.cost && it.miles > hi.miles)) hi = it;
+      }
+      if (hi) { elig++; low += lo.cost; lowM += lo.miles; high += hi.cost; highM += hi.miles; const u = Math.floor(m / unit); worst += table[u]; worstM += tUsed[u]; }
     }
     const n = b.rows.length, s = S.share / 100, fee = S.fee[b.name] ?? 0, revenue = fee * n;
     return { name: b.name, n, elig, avg: n ? Math.round(tot / n) : 0, totalMiles: tot, fee, revenue,
-             low: low * s, high: high * s, worst: worst * s };
+             low: low * s, high: high * s, worst: worst * s, lowM: lowM * s, highM: highM * s, worstM: worstM * s };
   });
   const T = out.reduce((a, r) => ({ n: a.n + r.n, elig: a.elig + r.elig, totalMiles: a.totalMiles + r.totalMiles, revenue: a.revenue + r.revenue,
-    low: a.low + r.low, high: a.high + r.high, worst: a.worst + r.worst }), { n: 0, elig: 0, totalMiles: 0, revenue: 0, low: 0, high: 0, worst: 0 });
+    low: a.low + r.low, high: a.high + r.high, worst: a.worst + r.worst, lowM: a.lowM + r.lowM, highM: a.highM + r.highM, worstM: a.worstM + r.worstM }), { n: 0, elig: 0, totalMiles: 0, revenue: 0, low: 0, high: 0, worst: 0, lowM: 0, highM: 0, worstM: 0 });
   T.avg = T.n ? Math.round(T.totalMiles / T.n) : 0;
   return { rows: out, total: T };
 }
@@ -155,14 +161,15 @@ function drawRewards() {
 function render() {
   const C = computeAll(S, DATA), T = C.total;
   const pc = (v, rev) => (rev ? (100 * v) / rev : 0);
-  const kp = (t, v, hi) => `<div class="kpi ${hi ? "hi" : ""}"><small>${t}</small><b>${lakh(v)}</b><span>${T.revenue ? pc(v, T.revenue).toFixed(1) + "% of revenue · " : ""}${inr(T.n ? v / T.n : 0)} per student</span></div>`;
-  $("kpis").innerHTML = kp("Low", T.low) + kp("High", T.high, true) + kp("Worst case", T.worst);
-  const cell = (v, rev) => `<td>${lakh(v)}</td><td class="pct ${cls(pc(v, rev))}">${rev ? pc(v, rev).toFixed(1) + "%" : "–"}</td>`;
+  const mi = (m) => (m / 1e5).toLocaleString("en-IN", { maximumFractionDigits: 1 }) + " L Miles";
+  const kp = (t, v, m, hi) => `<div class="kpi ${hi ? "hi" : ""}"><small>${t}</small><b>${lakh(v)}</b><div class="mm">${mi(m)} redeemed <i>(${T.totalMiles ? (100 * m / T.totalMiles).toFixed(0) : 0}% of all Miles earned)</i></div><span>${T.revenue ? pc(v, T.revenue).toFixed(1) + "% of revenue · " : ""}${inr(T.n ? v / T.n : 0)} per student</span></div>`;
+  $("kpis").innerHTML = kp("Low", T.low, T.lowM) + kp("High", T.high, T.highM, true) + kp("Worst case", T.worst, T.worstM);
+  const cell = (v, rev, m) => `<td>${lakh(v)}</td><td class="m">${(m / 1e5).toFixed(1)} L</td><td class="pct ${cls(pc(v, rev))}">${rev ? pc(v, rev).toFixed(1) + "%" : "–"}</td>`;
   $("tbl").innerHTML = `<table><thead><tr><th>Batch</th><th>Students</th><th>Can claim</th><th>Avg Miles</th><th>Fee / student ₹</th><th>Revenue</th>
-      <th>Low</th><th>% rev</th><th>High</th><th>% rev</th><th>Worst</th><th>% rev</th><th>Worst / student</th></tr></thead><tbody>` +
+      <th>Low ₹</th><th>Miles</th><th>% rev</th><th>High ₹</th><th>Miles</th><th>% rev</th><th>Worst ₹</th><th>Miles</th><th>% rev</th><th>Worst / student</th></tr></thead><tbody>` +
     C.rows.map((r) => `<tr><td>${r.name}</td><td>${r.n.toLocaleString("en-IN")}</td><td>${r.elig.toLocaleString("en-IN")}</td><td>${r.avg.toLocaleString("en-IN")}</td>
-      <td><input class="fee" type="number" data-fee="${r.name}" value="${r.fee}" step="500" min="0"></td><td>${lakh(r.revenue)}</td>${cell(r.low, r.revenue)}${cell(r.high, r.revenue)}${cell(r.worst, r.revenue)}<td>${inr(r.n ? r.worst / r.n : 0)}</td></tr>`).join("") +
-    `<tr class="tot"><td>All batches</td><td>${T.n.toLocaleString("en-IN")}</td><td>${T.elig.toLocaleString("en-IN")}</td><td>${T.avg.toLocaleString("en-IN")}</td><td></td><td>${lakh(T.revenue)}</td>${cell(T.low, T.revenue)}${cell(T.high, T.revenue)}${cell(T.worst, T.revenue)}<td>${inr(T.n ? T.worst / T.n : 0)}</td></tr></tbody></table>`;
+      <td><input class="fee" type="number" data-fee="${r.name}" value="${r.fee}" step="500" min="0"></td><td>${lakh(r.revenue)}</td>${cell(r.low, r.revenue, r.lowM)}${cell(r.high, r.revenue, r.highM)}${cell(r.worst, r.revenue, r.worstM)}<td>${inr(r.n ? r.worst / r.n : 0)}</td></tr>`).join("") +
+    `<tr class="tot"><td>All batches</td><td>${T.n.toLocaleString("en-IN")}</td><td>${T.elig.toLocaleString("en-IN")}</td><td>${T.avg.toLocaleString("en-IN")}</td><td></td><td>${lakh(T.revenue)}</td>${cell(T.low, T.revenue, T.lowM)}${cell(T.high, T.revenue, T.highM)}${cell(T.worst, T.revenue, T.worstM)}<td>${inr(T.n ? T.worst / T.n : 0)}</td></tr></tbody></table>`;
   window.__last = C;
 }
 document.addEventListener("input", (e) => {
@@ -183,8 +190,8 @@ $("add").onclick = () => { S.rewards.push({ name: "New reward", miles: 5000, cos
 $("reset").onclick = () => { S = fresh(); drawControls(); render(); };
 $("preset").onclick = () => { const r = S.rewards.find((x) => x.name.startsWith("1:1 doubt")); if (r) r.miles = 5000; drawRewards(); render(); };
 $("csv").onclick = () => {
-  const C = window.__last, h = ["batch", "students", "can_claim", "avg_miles", "fee_per_student", "revenue", "low", "high", "worst", "low_pct", "high_pct", "worst_pct"];
-  const q = (r) => [r.name, r.n, r.elig, r.avg, r.fee, r.revenue, Math.round(r.low), Math.round(r.high), Math.round(r.worst),
+  const C = window.__last, h = ["batch", "students", "can_claim", "avg_miles", "fee_per_student", "revenue", "low", "low_miles", "high", "high_miles", "worst", "worst_miles", "low_pct", "high_pct", "worst_pct"];
+  const q = (r) => [r.name, r.n, r.elig, r.avg, r.fee, r.revenue, Math.round(r.low), Math.round(r.lowM), Math.round(r.high), Math.round(r.highM), Math.round(r.worst), Math.round(r.worstM),
     r.revenue ? (100 * r.low / r.revenue).toFixed(2) : "", r.revenue ? (100 * r.high / r.revenue).toFixed(2) : "", r.revenue ? (100 * r.worst / r.revenue).toFixed(2) : ""].join(",");
   const csv = [h.join(","), ...C.rows.map(q), q({ ...C.total, name: "ALL", fee: "" })].join("\n");
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "miles_cost_per_batch.csv"; a.click();
