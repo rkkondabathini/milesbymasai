@@ -15,8 +15,9 @@ import reward_rules as RR
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--config", required=True)
-ap.add_argument("--pilot", required=True, help="export with the concluded batches to simulate")
-ap.add_argument("--programme", required=True, help="export with all live batches (for the scale view)")
+ap.add_argument("--pilot", required=True, nargs="+", help="export(s) with the concluded batches to simulate")
+ap.add_argument("--programme", required=True, nargs="+", help="export(s) covering all batches (for the across-batches view)")
+ap.add_argument("--fees-csv", help="CSV batch_name,revenue_per_student; adds to / overrides the fees in the config")
 ap.add_argument("--fee", action="append", default=[], help="BATCH=fee_per_student, for batches missing from the config")
 ap.add_argument("--out", default=str(Path(__file__).resolve().parent.parent / "data/output/leadership"))
 ap.add_argument("--date", default="16 Oct 2026")
@@ -25,15 +26,19 @@ a = ap.parse_args()
 cfg = L.load_cfg(a.config)
 S = cfg["settings"]
 fees = dict(cfg["feePerStudent"])
+if a.fees_csv:
+    import csv as _csv
+    for r in _csv.DictReader(open(a.fees_csv)):
+        fees[r["batch_name"]] = float(r["revenue_per_student"])
 for f in a.fee:
     k, v = f.split("="); fees[k] = float(v)
 CAP = S["repeatCap"]
 items = L.rewards_from(cfg)
 
 # ------------------------------------------------------------------ numbers
-def by_batch(path):
+def by_batch(paths):
     d = collections.defaultdict(list)
-    for r in ps.load([path]):
+    for r in ps.load(paths):
         d[r["batch_name"]].append(r)
     return d
 
@@ -54,10 +59,12 @@ earned = sum(allm)
 prog = {}
 for b, rs in prog_rows.items():
     m = L.student_miles(rs, cfg); o = L.evaluate(m, items, CAP)
-    prog[b] = dict(o=o, rev=fees[b] * len(m), n=len(m))
+    prog[b] = dict(o=o, rev=fees.get(b, 0) * len(m), n=len(m), fee=fees.get(b))
+prog = {b: v for b, v in prog.items() if v["fee"]}  # batches without a fee on file cannot be shown against revenue
 PT = {k: sum(prog[b]["o"][k] for b in prog) for k in ("n", "claim", "low", "high", "worst")}
 PT["rev"] = sum(prog[b]["rev"] for b in prog)
-PT["earned"] = sum(sum(L.student_miles(rs, cfg)) for rs in prog_rows.values())
+PT["earned"] = sum(sum(L.student_miles(prog_rows[b], cfg)) for b in prog)
+MANY = len(PILOT) > 3
 
 # sensitivity (programme High cost, scaled by share who redeem)
 SENS_MPR = [8, 10, 12]
@@ -91,12 +98,12 @@ def chart_distribution():
     BIN, XMAX = 2500, 47500
     nb = XMAX // BIN
     series = []
-    for b in PILOT:
+    groups = [(f"All {len(PILOT)} batches ({N:,} students)", allm)] if MANY else [(b, pilot[b]["miles"]) for b in PILOT]
+    for b, ms in groups:
         c = [0] * nb
-        for x in pilot[b]["miles"]:
+        for x in ms:
             c[min(nb - 1, x // BIN)] += 1
-        n = len(pilot[b]["miles"])
-        series.append((b, smooth([100 * v / n for v in c])))
+        series.append((b, smooth([100 * v / len(ms) for v in c])))
     ymax = math.ceil(max(max(s) for _, s in series) / 5) * 5
     X = lambda m: ml + (W - ml - mr) * m / XMAX
     Y = lambda v: mt + (H - mt - mb) * (1 - v / ymax)
@@ -114,14 +121,14 @@ def chart_distribution():
     lg = "".join(f'<g transform="translate({ml + i * 170},{H - 28})"></g>' for i, _ in enumerate(series))
     legend = "".join(f'<span class="lg"><i style="background:{c}"></i>{esc(b)}</span>' for (b, _), c in zip(series, SERIES))
     chips = ""
-    for b, c in zip(PILOT, SERIES):
-        m = pilot[b]["miles"]
-        chips += (f'<div class="bchip" style="border-top:4px solid {c}"><b>{esc(b)}</b><div class="bnum"><span><i>{len(m):,}</i>students</span>'
+    for (b, m), c in zip(groups, SERIES):
+        chips += (f'<div class="bchip" style="border-top:4px solid {c}{";grid-column:1/-1" if MANY else ""}"><b>{esc(b)}</b><div class="bnum"><span><i>{len(m):,}</i>students</span>'
                   f'<span><i>{sum(m) // len(m):,}</i>avg Miles</span><span><i>{int(st.median(m)):,}</i>median</span><span><i>{max(m):,}</i>highest</span></div></div>')
     return f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-label="Distribution of Miles per student">{"".join(g)}</svg><div class="legend">{legend}</div><div class="bchips">{chips}</div>'
 
 def chart_reach():
-    marks = [1500, 5000, 10000, 15000, 20000, 40000]
+    lo_m = min(it["miles"] for it in items)
+    marks = sorted({lo_m, 5000, 10000, 15000, 20000, 40000})
     rows = [(m, sum(1 for x in allm if x >= m), 100 * sum(1 for x in allm if x >= m) / N) for m in marks]
     W, rh, ml = 760, 27, 90
     H = rh * len(rows) + 8
@@ -138,9 +145,10 @@ def chart_reach():
     return f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-label="Share of students reaching each Miles level">{"".join(g)}</svg>'
 
 def chart_cost():
-    groups = PILOT + ["Both batches"]
+    tot_label = f"All {len(PILOT)} batches" if MANY else "Both batches"
+    groups = [tot_label] if MANY else PILOT + [tot_label]
     vals = {b: (pilot[b]["o"]["low"], pilot[b]["o"]["high"], pilot[b]["o"]["worst"], pilot[b]["o"]["n"]) for b in PILOT}
-    vals["Both batches"] = (tot["low"], tot["high"], tot["worst"], tot["n"])
+    vals[tot_label] = (tot["low"], tot["high"], tot["worst"], tot["n"])
     W, H, ml, mt, mb = 760, 232, 30, 22, 58
     vmax = max(v[2] for v in vals.values()) / 1e5
     top = math.ceil(vmax)
@@ -163,6 +171,27 @@ def chart_cost():
     g.append(f'<text x="2" y="14" font-size="11" fill="{MUT}">₹ lakh</text>')
     legend = "".join(f'<span class="lg"><i style="background:{c}"></i>{n}</span>' for c, n in cols)
     return f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-label="Cost by scenario">{"".join(g)}</svg><div class="legend">{legend}</div>'
+
+def chart_batches():
+    rows = sorted(((b, 100 * pilot[b]["o"]["high"] / pilot[b]["rev"], 100 * pilot[b]["o"]["worst"] / pilot[b]["rev"], pilot[b]["o"]["n"])
+                   for b in PILOT if pilot[b]["rev"] and pilot[b]["o"]["n"] >= 30), key=lambda r: -r[1])
+    W, rh, ml = 760, 19, 150
+    H = rh * len(rows) + 34
+    mx = max(r[2] for r in rows)
+    scale = (W - ml - 120) / (mx * 1.05)
+    avg_h = 100 * tot["high"] / sum(pilot[b]["rev"] for b in PILOT if pilot[b]["rev"])
+    g = []
+    for i, (b, h, w, n) in enumerate(rows):
+        y = 4 + i * rh
+        g.append(f'<text x="{ml - 8}" y="{y + 13}" text-anchor="end" font-size="11" fill="{INK}">{esc(b)} <tspan fill="{MUT}">· {n:,}</tspan></text>'
+                 f'<rect x="{ml}" y="{y + 3}" width="{max(w * scale, 3):.1f}" height="13" rx="4" fill="{RED_D}" fill-opacity=".28"/>'
+                 f'<rect x="{ml}" y="{y + 3}" width="{max(h * scale, 3):.1f}" height="13" rx="4" fill="{RED}"/>'
+                 f'<text x="{ml + max(w * scale, 3) + 6}" y="{y + 13}" font-size="11" font-weight="700" fill="{INK}">{h:.1f}% <tspan fill="{MUT}" font-weight="500">· worst {w:.1f}%</tspan></text>')
+    ax = ml + avg_h * scale
+    g.append(f'<line x1="{ax}" x2="{ax}" y1="0" y2="{H - 26}" stroke="{INK}" stroke-dasharray="4 3"/>'
+             f'<text x="{ax + 6}" y="{H - 10}" font-size="11.5" font-weight="700" fill="{INK}">All {len(PILOT)} batches: {avg_h:.1f}%</text>')
+    return (f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-label="Cost as a share of revenue, by batch">{"".join(g)}</svg>'
+            f'<div class="legend"><span class="lg"><i style="background:{RED}"></i>High case</span><span class="lg"><i style="background:{RED_D};opacity:.3"></i>Worst case</span></div>')
 
 def chart_scale():
     rows = sorted(((b, 100 * v["o"]["high"] / v["rev"], v["o"]["high"], v["n"]) for b, v in prog.items() if v["n"] >= 30), key=lambda r: -r[1])
@@ -225,10 +254,19 @@ for b in PILOT:
     o, r = pilot[b]["o"], pilot[b]["rev"]
     cost_rows += (f'<tr><td>{esc(b)}</td><td>{o["n"]:,}</td><td>{100 * o["claim"] / o["n"]:.0f}%</td><td>{lakh(o["high"])}</td>'
                   f'<td>{pct(100 * o["high"] / r) if r else "–"}</td><td>{lakh(o["worst"])}</td><td>{pct(100 * o["worst"] / r) if r else "–"}</td></tr>')
-cost_rows += (f'<tr class="tot"><td>Both</td><td>{tot["n"]:,}</td><td>{claim_pct:.0f}%</td><td>{lakh(tot["high"])}</td>'
+cost_rows += (f'<tr class="tot"><td>{"All" if MANY else "Both"}</td><td>{tot["n"]:,}</td><td>{claim_pct:.0f}%</td><td>{lakh(tot["high"])}</td>'
               + ('<td>–</td>' if miss else f'<td>{pct(100 * tot["high"] / sum(known_rev))}</td>') + f'<td>{lakh(tot["worst"])}</td>'
               + ('<td>–</td>' if miss else f'<td>{pct(100 * tot["worst"] / sum(known_rev))}</td>') + '</tr>')
 
+detail_rows = ""
+for b in PILOT:
+    o, r = pilot[b]["o"], pilot[b]["rev"]
+    detail_rows += (f'<tr><td>{esc(b)}</td><td>{o["n"]:,}</td><td>{sum(pilot[b]["miles"]) // o["n"]:,}</td><td>{100 * o["claim"] / o["n"]:.0f}%</td>'
+                    f'<td>{inr(pilot[b]["fee"]) if pilot[b]["fee"] else "–"}</td><td>{lakh(o["high"])}</td><td>{pct(100 * o["high"] / r) if r else "–"}</td>'
+                    f'<td>{lakh(o["worst"])}</td><td>{pct(100 * o["worst"] / r) if r else "–"}</td></tr>')
+_kr = sum(pilot[b]["rev"] for b in PILOT if pilot[b]["rev"])
+detail_rows += (f'<tr class="tot"><td>All {len(PILOT)} batches</td><td>{tot["n"]:,}</td><td>{earned // N:,}</td><td>{claim_pct:.0f}%</td><td></td><td>{lakh(tot["high"])}</td>'
+                f'<td>{pct(100 * tot["high"] / _kr)}</td><td>{lakh(tot["worst"])}</td><td>{pct(100 * tot["worst"] / _kr)}</td></tr>') if _kr else ""
 TYPE_SHORT = {"physical": "Shipped", "reimburse": "Pay & reimburse", "voucher": "Voucher", "session": "Scheduled", "event": "Subject to event", "discount": "Fee discount", "recognition": "Recognition"}
 cat_groups = collections.OrderedDict()
 for r in cfg["rewards"]:
@@ -255,10 +293,13 @@ for t, n in used_types.most_common():
     rule_cards += (f'<div class="rc"><div class="rh"><i class="ty {t}"></i><b>{esc(tt["label"])}</b><span>{n} reward{"" if n == 1 else "s"}</span></div>'
                    f'<ol>{steps}</ol><p><b>Subject to:</b> {esc(tt["subject_to"])}</p><p class="rf">{esc(tt["if_not_delivered"])}</p></div>')
 
+chart_batches_block = f'<h2 style="margin:16px 0 4px;font-size:16px">Cost as a share of revenue, by batch</h2><p class="sub">High case, with the worst case shaded. Number of students after each batch.</p>{chart_batches()}' if MANY else ""
+cost_table_block = f'<table style="margin-top:10px"><tr><th>Batch</th><th>Students</th><th>Can claim</th><th>High</th><th>% of revenue</th><th>Worst case</th><th>% of revenue</th></tr>{cost_rows}</table>'
 CSS = f"""
 .cat{{font-size:10.8px;line-height:1.2}}.cat td,.cat th{{padding:1.6px 8px;border-bottom:1px solid {LINE}}}.cat th{{font-size:10px}}
 .cat td:nth-child(2),.cat td:nth-child(3),.cat th:nth-child(2),.cat th:nth-child(3){{text-align:right}}
 .cat td:nth-child(4),.cat th:nth-child(4){{text-align:left;white-space:nowrap}}
+.cat.det td,.cat.det th{{padding:1.8px 7px;font-size:11px;white-space:nowrap}}.cat.det td,.cat.det th{{text-align:right}}.cat.det td:first-child,.cat.det th:first-child{{text-align:left}}.cat.det tr.tot td{{font-weight:800;border-top:2px solid {INK}}}
 .cat tr.gr td{{background:{PINK};font-weight:800;font-size:11px;color:{RED_D};border-bottom:0;padding:3px 8px}}
 .cat tr.gr span{{background:{RED};color:#fff;border-radius:99px;font-size:10px;padding:1px 7px;margin-left:6px}}
 .est{{font-style:normal;font-size:9px;font-weight:700;color:#8a5a00;background:#fff1c2;border-radius:99px;padding:1px 6px}}
@@ -367,7 +408,7 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
 <div class="pb"></div>
 <div class="sec" style="padding-top:34px"><h2>What it would have cost</h2><p class="sub">₹ lakh &nbsp;·&nbsp; <span class="pill p1">Low</span> cheapest reward each &nbsp; <span class="pill p2">High</span> best reward each, once &nbsp; <span class="pill p3">Worst case</span> every Mile spent</p>
   {chart_cost()}
-  <table style="margin-top:10px"><tr><th>Batch</th><th>Students</th><th>Can claim</th><th>High</th><th>% of revenue</th><th>Worst case</th><th>% of revenue</th></tr>{cost_rows}</table>
+  {chart_batches_block if MANY else cost_table_block}
   {rev_note}</div>
 
 <div class="sec"><h2>Why the cost cannot run away</h2>
@@ -380,8 +421,8 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
   {heat()}
   <p class="foot">Highlighted: {mpr} Miles = ₹1, everyone redeems. At 25–50% redemption the cost would be {lakh(PT["high"] * .25)} to {lakh(PT["high"] * .5)}.</p></div>
 
-<div class="pb"></div>
-<div class="sec" style="padding-top:34px"><h2>Across all batches</h2><p class="sub">Applied to all {len(prog)} batches ({PT["n"]:,} students, revenue {lakh(PT["rev"])}): High case is <b>{lakh(PT["high"])} ({pct(100 * PT["high"] / PT["rev"])} of revenue)</b>; worst case {lakh(PT["worst"])} ({pct(100 * PT["worst"] / PT["rev"])}).</p>
+{"" if MANY else '<div class="pb"></div>'}
+<div class="sec" style="padding-top:{26 if MANY else 34}px"><h2>Across all batches</h2><p class="sub">Applied to all {len(prog)} batches ({PT["n"]:,} students, revenue {lakh(PT["rev"])}): High case is <b>{lakh(PT["high"])} ({pct(100 * PT["high"] / PT["rev"])} of revenue)</b>; worst case {lakh(PT["worst"])} ({pct(100 * PT["worst"] / PT["rev"])}).</p>
   {chart_scale()}</div>
 
 <div class="sec"><h2>Safeguards built in</h2>
@@ -410,6 +451,7 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
    <div class="st"><i>4</i><b>Track monthly</b><span>cost vs ceiling</span></div>
   </div></div>
 
+{"" if not MANY else f'<div class="sec" style="padding-top:18px;break-inside:auto"><h2>Batch detail</h2><p class="sub">Simulated batches. Fee is per student; revenue is fee x students.</p><table class="cat det"><tr><th>Batch</th><th>Students</th><th>Avg Miles</th><th>Can claim</th><th>Fee</th><th>High</th><th>% rev</th><th>Worst</th><th>% rev</th></tr>{detail_rows}</table></div>'}
 <div class="pb"></div>
 <div class="sec" style="padding-top:30px"><h2>Reward catalogue</h2>
   <p class="sub">{n_rewards} rewards. Miles are priced at {mpr} Miles = ₹1 of cost to Masai. <em class="est">estimate</em> = cost still to be confirmed.</p>
