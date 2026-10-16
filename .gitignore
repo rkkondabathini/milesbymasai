@@ -22,3 +22,8 @@ v/
 # commercial data
 data/input/revenue.csv
 data/input/placement_eligibility.csv
+
+# raw exports and downloaded tables (learner data / revenue)
+query_result_*.csv
+miles_cost_per_batch*.csv
+miles_playground_config_*.json
