@@ -22,6 +22,7 @@ if (!REDEEM_SECRET) { REDEEM_SECRET = randomBytes(32).toString("hex"); writeFile
 const sign = (rid, asOf, balance) => createHmac("sha256", REDEEM_SECRET).update(`${rid}|${asOf}|${balance}`).digest("hex");
 const REDEEM_ENDPOINT = (process.env.MILES_REDEEM_ENDPOINT || "").trim();
 const REDEEM_FORM_URL = process.env.MILES_REDEEM_FORM_URL || "";
+const SUPPORT_EMAIL = (process.env.MILES_REWARDS_EMAIL || "").trim();
 const salt = MilesAuth.b64(randomBytes(16));
 const students = {};
 const skipped = [];
@@ -37,6 +38,9 @@ for (const [lid, s] of Object.entries(src.students)) {
   if (++done % 100 === 0) console.log(`  encrypted ${done}`);
 }
 const faq = JSON.parse(readFileSync(join(here, "faq.json"), "utf8"));
+const rules = JSON.parse(readFileSync(join(here, "reward_rules.json"), "utf8"));
+const classify = (name) => { for (const r of rules.rules) if (new RegExp(r.match, "i").test(name)) {
+  const t = rules.types[r.type]; return { type: r.type, sla: t.sla_days, size: !!(r.size && new RegExp(r.size, "i").test(name)), placement: !!(r.placement && new RegExp(r.placement, "i").test(name)) }; } };
 // public support contacts (batch PCs) shown on the login page; only rows that have a phone number
 const support = [];
 try {
@@ -48,13 +52,13 @@ try {
   }
 } catch {}
 const blob = { salt, iter: ITER, built_at: new Date().toISOString(), as_of: src.as_of, rewards: src.rewards, rates: src.rates,
-               threshold: src.threshold, multipliers: src.multipliers, faq, support, students };
+               threshold: src.threshold, multipliers: src.multipliers, faq, rules, support, support_email: SUPPORT_EMAIL, students };
 const tpl = readFileSync(join(here, "app.template.html"), "utf8")
   .replace("__REDEEM_ENDPOINT__", REDEEM_ENDPOINT).replace("__REDEEM_FORM_URL__", REDEEM_FORM_URL);
 
 // Apps Script that receives redemption requests into a Google Sheet (catalog is embedded so costs can't be forged)
-const catalog = Object.fromEntries(src.rewards.map((r) => [r.reward_id, r.cost]));
-const gs = readFileSync(join(here, "redeem_webhook.template.gs"), "utf8").replace("__CATALOG__", JSON.stringify(catalog));
+const catalog = Object.fromEntries(src.rewards.map((r) => { const c = classify(r.name); return [r.reward_id, { cost: r.cost, name: r.name, type: c.type, sla: c.sla, size: c.size, placement: c.placement, rep: !!r.repeatable }]; }));
+const gs = readFileSync(join(here, "redeem_webhook.template.gs"), "utf8").replace("__CATALOG__", JSON.stringify(catalog)).replace("__RULES__", JSON.stringify(Object.fromEntries(Object.entries(rules.types).map(([k, v]) => [k, { how: v.how, subject_to: v.subject_to, if_not_delivered: v.if_not_delivered }]))));
 writeFileSync(join(here, "redeem_webhook.gs"), gs);
 const html = tpl.replace("/*__AUTH__*/", () => readFileSync(join(here, "auth.js"), "utf8"))
                 .replace("__BLOB__", () => JSON.stringify(blob).replace(/</g, "\\u003c"));

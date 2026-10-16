@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import leadership_numbers as L
 import payout_sim as ps
+import reward_rules as RR
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--config", required=True)
@@ -209,6 +210,8 @@ for b in PILOT:
         o = pilot[b]["o"]
         pilot_pct_known.append((b, 100 * o["high"] / pilot[b]["rev"], 100 * o["worst"] / pilot[b]["rev"]))
 unconfirmed = [r for r in cfg["rewards"] if r["on"] and not r["costConfirmed"]]
+unc_names = ", ".join(r["name"].replace("Participation in ", "").replace("Interview with a company", "company interview").lower() for r in unconfirmed)
+unc_min = min((r["miles"] for r in unconfirmed), default=0)
 est = lambda s: tot["high"] * s / 100
 ceiling = math.ceil(tot["worst"] / 1e5 * 10) / 10 * 1e5
 
@@ -226,7 +229,50 @@ cost_rows += (f'<tr class="tot"><td>Both</td><td>{tot["n"]:,}</td><td>{claim_pct
               + ('<td>–</td>' if miss else f'<td>{pct(100 * tot["high"] / sum(known_rev))}</td>') + f'<td>{lakh(tot["worst"])}</td>'
               + ('<td>–</td>' if miss else f'<td>{pct(100 * tot["worst"] / sum(known_rev))}</td>') + '</tr>')
 
+TYPE_SHORT = {"physical": "Shipped", "reimburse": "Pay & reimburse", "voucher": "Voucher", "session": "Scheduled", "event": "Subject to event", "discount": "Fee discount", "recognition": "Recognition"}
+cat_groups = collections.OrderedDict()
+for r in cfg["rewards"]:
+    if r["on"] and r["cost"] > 0:
+        cat_groups.setdefault("Other" if r["group"] == "Custom" else r["group"], []).append(r)
+for g in cat_groups:
+    cat_groups[g].sort(key=lambda r: (r["miles"], r["name"]))
+auto_on = S["autoPriceMilesFromCost"]
+cat_html = ""
+for g, rs in cat_groups.items():
+    cat_html += f'<tr class="gr"><td colspan="4">{esc(g)} <span>{len(rs)}</span></td></tr>'
+    for r in rs:
+        c = RR.classify(r["name"])
+        flag = "" if r["costConfirmed"] else ' <em class="est">estimate</em>'
+        rep_ = ' <em class="rp">repeatable</em>' if r["repeatable"] else ""
+        cat_html += (f'<tr><td>{esc(r["name"])}{rep_}{flag}</td><td>{r["miles"]:,}</td><td>{inr(r["cost"])}</td>'
+                     f'<td><i class="ty {c["type"]}"></i>{esc(TYPE_SHORT[c["type"]])}</td></tr>')
+n_rewards = sum(len(v) for v in cat_groups.values())
+used_types = collections.Counter(RR.classify(r["name"])["type"] for rs in cat_groups.values() for r in rs)
+rule_cards = ""
+for t, n in used_types.most_common():
+    tt = RR.RULES["types"][t]
+    steps = "".join(f"<li>{esc(h)}</li>" for h in tt["how"])
+    rule_cards += (f'<div class="rc"><div class="rh"><i class="ty {t}"></i><b>{esc(tt["label"])}</b><span>{n} reward{"" if n == 1 else "s"}</span></div>'
+                   f'<ol>{steps}</ol><p><b>Subject to:</b> {esc(tt["subject_to"])}</p><p class="rf">{esc(tt["if_not_delivered"])}</p></div>')
+
 CSS = f"""
+.cat{{font-size:10.8px;line-height:1.2}}.cat td,.cat th{{padding:1.6px 8px;border-bottom:1px solid {LINE}}}.cat th{{font-size:10px}}
+.cat td:nth-child(2),.cat td:nth-child(3),.cat th:nth-child(2),.cat th:nth-child(3){{text-align:right}}
+.cat td:nth-child(4),.cat th:nth-child(4){{text-align:left;white-space:nowrap}}
+.cat tr.gr td{{background:{PINK};font-weight:800;font-size:11px;color:{RED_D};border-bottom:0;padding:3px 8px}}
+.cat tr.gr span{{background:{RED};color:#fff;border-radius:99px;font-size:10px;padding:1px 7px;margin-left:6px}}
+.est{{font-style:normal;font-size:9px;font-weight:700;color:#8a5a00;background:#fff1c2;border-radius:99px;padding:1px 6px}}
+.rp{{font-style:normal;font-size:9.5px;font-weight:700;color:{GREEN};background:#e5f5ec;border-radius:99px;padding:1px 6px}}
+.ty{{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}}
+.ty.physical{{background:#d71f3a}}.ty.reimburse{{background:#8a1424}}.ty.voucher{{background:#f08a1c}}.ty.session{{background:#4d5260}}.ty.event{{background:#2563eb}}.ty.discount{{background:#1a8f58}}.ty.recognition{{background:#7c3aed}}
+.rcs{{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
+.rc{{background:#f6f6f8;border-radius:14px;padding:12px 14px;font-size:12px}}
+.rc .rh{{display:flex;align-items:center;gap:6px;margin-bottom:4px}}.rc .rh b{{font-size:13.5px}}.rc .rh span{{margin-left:auto;color:{MUT};font-size:11px}}
+.rc ol{{margin:4px 0 6px;padding-left:17px}}.rc li{{margin:1px 0}}
+.rc p{{margin:3px 0;color:#3b3f4c;line-height:1.4}}.rc p.rf{{color:{MUT}}}
+.rules{{margin-top:12px;background:{INK};color:#fff;border-radius:14px;padding:14px 18px;font-size:12.5px;line-height:1.5}}
+.rules b{{color:#ffb3be}}.rules ul{{margin:6px 0 0;padding-left:18px}}
+"""+f"""
 @page{{size:A4;margin:0}}
 *{{box-sizing:border-box}}html,body{{margin:0}}
 body{{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:{INK};background:#eceef2;-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.45}}
@@ -350,7 +396,7 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
 
 <div class="sec"><h2>Watch-outs, handled</h2>
   <div class="risk">
-   <div class="rk"><b>{len(unconfirmed)} premium rewards have estimated costs</b>Company interview, hiring drive. <em>Only 40,000+ Miles reach them ({sum(1 for x in allm if x >= 40000)} student here).</em></div>
+   <div class="rk"><b>{len(unconfirmed)} premium rewards have estimated costs</b>{esc(unc_names[:1].upper() + unc_names[1:])}. <em>Only {unc_min:,}+ Miles reach them ({sum(1 for x in allm if x >= unc_min)} student{"" if sum(1 for x in allm if x >= unc_min) == 1 else "s"} here).</em></div>
    <div class="rk"><b>Miles keep growing</b>Cost rises with engagement. <em>Capped at ₹{1 / mpr:.2f} per Mile.</em></div>
    <div class="rk"><b>Redemption rate is unknown</b>No history yet. <em>Ceiling holds at any rate; tracked from day one.</em></div>
    <div class="rk"><b>Physical rewards add logistics</b>Gear needs vendors. <em>Digital and experience rewards launch first.</em></div>
@@ -364,6 +410,22 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
    <div class="st"><i>4</i><b>Track monthly</b><span>cost vs ceiling</span></div>
   </div></div>
 
+<div class="pb"></div>
+<div class="sec" style="padding-top:30px"><h2>Reward catalogue</h2>
+  <p class="sub">{n_rewards} rewards. Miles are priced at {mpr} Miles = ₹1 of cost to Masai. <em class="est">estimate</em> = cost still to be confirmed.</p>
+  <table class="cat"><tr><th>Reward</th><th>Miles</th><th>Cost to Masai</th><th>How it is availed</th></tr>{cat_html}</table></div>
+
+<div class="pb"></div>
+<div class="sec" style="padding-top:30px"><h2>How rewards are availed</h2>
+  <p class="sub">Every reward follows one of seven routes. Students see these rules before they confirm.</p>
+  <div class="rcs">{rule_cards}</div>
+  <div class="rules"><b>For every reward</b>
+   <ul><li>The student confirms and accepts these rules; the time and wording are stored.</li>
+   <li>Miles are held when a claim is made, and returned if the claim is rejected, cancelled or expires.</li>
+   <li>Each reward can be claimed once, except those marked repeatable.</li>
+   <li>Items shipped need a full delivery address (and a size for apparel). Subscriptions are reimbursed against an invoice.</li>
+   <li>Hackathon, placement drive, company interview and mentor sessions depend on the event taking place and on availability. They are not a job guarantee.</li></ul></div></div>
+
 <p class="foot">Retrospective simulation on concluded batches. Data: Metabase export, 16 Oct 2026. No streak boost. Costs are cost to Masai per reward. Method: docs/cost_calculation.md.</p>
 </div></body></html>"""
 
@@ -371,10 +433,24 @@ out = Path(a.out)
 out.parent.mkdir(parents=True, exist_ok=True)
 Path(f"{out}.html").write_text(html_doc)
 print(f"wrote {out}.html")
-chrome = "/Users/inno/.cache/puppeteer/chrome/mac_arm-151.0.7922.47/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
-if Path(chrome).exists():
+import glob, os, shutil
+
+
+def find_chrome():
+    cands = [os.environ.get("CHROME_PATH", ""), "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+             "/Applications/Chromium.app/Contents/MacOS/Chromium", "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+             "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"]
+    cands += sorted(glob.glob(str(Path.home() / ".cache/puppeteer/chrome/*/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing")), reverse=True)
+    cands += [shutil.which(n) or "" for n in ("google-chrome", "chromium", "chromium-browser", "chrome")]
+    return next((c for c in cands if c and Path(c).exists()), None)
+
+
+chrome = find_chrome()
+if chrome:
     subprocess.run([chrome, "--headless=new", "--disable-gpu", "--no-pdf-header-footer", "--virtual-time-budget=6000",
-                    f"--print-to-pdf={out}.pdf", f"file://{out}.html"], capture_output=True, timeout=120)
-    print(f"wrote {out}.pdf" if Path(f"{out}.pdf").exists() else "pdf failed")
+                    f"--print-to-pdf={out}.pdf", f"file://{out}.html"], capture_output=True, timeout=180)
+    print(f"wrote {out}.pdf" if Path(f"{out}.pdf").exists() else "PDF step failed: open the .html in Chrome and use Print > Save as PDF")
+else:
+    print("No Chrome/Chromium found. Open the .html in a browser and use Print > Save as PDF (A4, margins none, background graphics on).")
 print(json.dumps(dict(students=tot["n"], claim_pct=round(claim_pct), low=tot["low"], high=tot["high"], worst=tot["worst"], programme_high=PT["high"],
                       programme_pct=round(100 * PT["high"] / PT["rev"], 2), ceiling=ceiling, unconfirmed=len(unconfirmed))))

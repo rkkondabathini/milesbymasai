@@ -33,3 +33,12 @@ The team updates column L (`status`) on the Redemptions tab:
 ### Test it without Google
     python3 ops/redeem_local.py                      # receiver, writes data/output/redemptions_local.csv
     MILES_REDEEM_ENDPOINT=http://127.0.0.1:8787 node webapp/build.mjs
+
+## Updating the redemption sheet script (adds delivery details, statuses, due dates)
+1. Rebuild (`node webapp/build.mjs`) so `webapp/redeem_webhook.gs` is regenerated with the current rewards and rules.
+2. Open the sheet > Extensions > Apps Script, replace the code with the new `redeem_webhook.gs`, save.
+3. Run `setup()`. It appends the new columns to the right of the existing ones, so existing rows are kept.
+   If it reports a column in the wrong position, the sheet header was edited by hand: restore the original order.
+4. Deploy > Manage deployments > pencil > **New version** (saving alone does not update the live web app).
+5. Optional env var for the dashboard: `MILES_REWARDS_EMAIL` (mailbox students send reimbursement invoices to).
+See `docs/redemption_operations.md` for the full operating procedure.

@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "note": "How each reward is availed. Rules match a reward by name (first match wins). Used by the dashboard, the redemption sheet script, the leadership report and docs/redemption_operations.md.",
+  "types": {
+    "physical": {
+      "label": "Shipped to you",
+      "how": [
+        "Enter your delivery address when you claim",
+        "Masai orders and ships it",
+        "You get the tracking details by email and WhatsApp"
+      ],
+      "needs": [
+        "address"
+      ],
+      "sla_days": 21,
+      "subject_to": "Delivery in India only, within about 21 working days. Stock and vendor availability apply.",
+      "if_not_delivered": "If we cannot supply it, your Miles are returned or you can pick another reward."
+    },
+    "reimburse": {
+      "label": "Pay and get reimbursed",
+      "how": [
+        "Buy it yourself from the official site",
+        "Upload the invoice within 7 days of claiming",
+        "Masai verifies and reimburses you within 10 working days"
+      ],
+      "needs": [
+        "invoice"
+      ],
+      "sla_days": 17,
+      "subject_to": "Reimbursed up to the reward value. The invoice must be in your name and dated after you claimed. Anything above the reward value is on you.",
+      "if_not_delivered": "If no valid invoice is received within 30 days the claim lapses and your Miles are returned."
+    },
+    "voucher": {
+      "label": "Code or voucher",
+      "how": [
+        "Masai purchases the voucher",
+        "The code is emailed to you within 5 working days"
+      ],
+      "needs": [],
+      "sla_days": 7,
+      "subject_to": "Vouchers are subject to the issuer's own terms and expiry.",
+      "if_not_delivered": "If we cannot issue it, your Miles are returned."
+    },
+    "session": {
+      "label": "Scheduled with the team",
+      "how": [
+        "The team contacts you to agree a time",
+        "You attend the session",
+        "The claim is closed once it has happened"
+      ],
+      "needs": [],
+      "sla_days": 15,
+      "subject_to": "Depends on the availability of the mentor or expert. We aim to schedule within 15 working days.",
+      "if_not_delivered": "If it cannot be scheduled within 30 days, your Miles are returned."
+    },
+    "event": {
+      "label": "Subject to the event",
+      "how": [
+        "Your claim is recorded and held",
+        "Masai confirms your place once the event is scheduled",
+        "You are told the date, format and what to bring"
+      ],
+      "needs": [],
+      "sla_days": 90,
+      "subject_to": "The event must actually take place, and seats or slots are limited. Placement-linked items also depend on placement eligibility and employer availability, and are not a job guarantee.",
+      "if_not_delivered": "If the event does not take place within 90 days, your Miles are returned or carried over, at your choice."
+    },
+    "discount": {
+      "label": "Applied to your fee",
+      "how": [
+        "Claim the reward",
+        "The team confirms your enrolment",
+        "The discount is applied to your Campus Immersion fee invoice"
+      ],
+      "needs": [],
+      "sla_days": 10,
+      "subject_to": "One-time, non-transferable, valid for the next Campus Immersion you register for.",
+      "if_not_delivered": "If you do not register in the validity window, your Miles are returned."
+    },
+    "recognition": {
+      "label": "Recognition",
+      "how": [
+        "The team confirms what will be published",
+        "You approve the content",
+        "It goes live within 7 working days"
+      ],
+      "needs": [
+        "consent"
+      ],
+      "sla_days": 10,
+      "subject_to": "Published only with your consent. Wording is reviewed by Masai.",
+      "if_not_delivered": "If it cannot be published, your Miles are returned."
+    }
+  },
+  "rules": [
+    {
+      "match": "LinkedIn Recommendation",
+      "type": "session"
+    },
+    {
+      "match": "profile review",
+      "type": "session"
+    },
+    {
+      "match": "voucher|\\bOTT\\b|Music",
+      "type": "voucher"
+    },
+    {
+      "match": "subscription|Canva|LinkedIn Premium|AI tool|AI coding|Interview-prep platform|course|Domain",
+      "type": "reimburse"
+    },
+    {
+      "match": "Campus Immersion",
+      "type": "discount"
+    },
+    {
+      "match": "Wall of Fame|certificate",
+      "type": "recognition"
+    },
+    {
+      "match": "hackathon entry|masterclass|conference|hiring drive|Interview with a company",
+      "type": "event",
+      "placement": "hiring drive|Interview with a company"
+    },
+    {
+      "match": "t-?shirt|hoodie|sticker|notebook|cap\\b|sipper|desk mat|cable|stand|riser|cooling|cushion|mouse|sleeve|\\bhub\\b|lamp|keyboard|backpack|earphones|neckband|headphones|webcam|earbuds|mic\\b|remote|pen drive|power bank|SSD|fitness|bottle|glasses|Book:",
+      "type": "physical",
+      "size": "t-?shirt|hoodie"
+    },
+    {
+      "match": ".*",
+      "type": "session"
+    }
+  ]
+}

@@ -37,6 +37,7 @@ def num(x):
     return int(float(x)) if str(x or "").strip() else 0
 
 
+REFUNDED = ("rejected", "cancelled", "expired")  # statuses that return the Miles
 IDENT = ["name", "email", "batch", "whatsapp_number"]
 STORE_FIELDS = ["learner_id", "date"] + IDENT + BUCKETS + ["detail", "pending"]
 # Metabase column -> engine bucket
@@ -155,7 +156,7 @@ def run(as_of):
     spent, redeemed = defaultdict(int), defaultdict(list)
     for r in read_csv(IN / "redemptions.csv"):
         redeemed[r["learner_id"]].append({k: r.get(k, "") for k in ("reward_id", "miles_cost", "status", "date")})
-        if r.get("status", "").lower() != "rejected":
+        if r.get("status", "").lower() not in REFUNDED:
             spent[r["learner_id"]] += num(r.get("miles_cost")) or cost.get(r["reward_id"], 0)
 
     all_dates = [d for v in daily.values() for d in v]
@@ -370,7 +371,7 @@ def ingest_redemptions(src):
             "status": (r.get("status") or "requested").strip().lower(), "date": (r.get("timestamp") or "")[:10]}
            for r in rows if r.get("learner_id") and r.get("reward_id")]
     write_csv(IN / "redemptions.csv", out, ["learner_id", "reward_id", "miles_cost", "status", "date"])
-    print(f"redemptions: {len(out)} rows ({sum(1 for o in out if o['status'] != 'rejected')} counted)")
+    print(f"redemptions: {len(out)} rows ({sum(1 for o in out if o['status'] not in REFUNDED)} counted)")
 
 
 if __name__ == "__main__":
