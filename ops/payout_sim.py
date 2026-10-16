@@ -63,6 +63,14 @@ SUGGESTED = [
     ("Wall of Fame + LinkedIn shout-out", 2000, 0), ("Personalised achievement certificate", 2500, 0),
     ("Sticker pack", 1000, 150), ("Notebook or cap", 2000, 300), ("Branded sipper", 2500, 400),
 ]
+# rewards a student may claim more than once (edit to match policy); everything else is once per student.
+REPEATABLE = {
+    "1:1 doubt session with your CC (30 min)", "1:1 session with a TA (30 min)", "1:1 session with an IM (30 min)",
+    "Mock interview", "Interview preparation assignment", "Resume building support",
+    "Amazon / Flipkart voucher Rs 500", "Amazon / Flipkart voucher Rs 1,000", "Amazon / Flipkart voucher Rs 2,000",
+    "Food voucher Rs 500", "Coffee voucher Rs 500", "Books voucher", "Virtual coffee with alumnus / mentor",
+}
+CAPS = [1, 2, 3, 5, None]          # max claims per repeatable reward; None = unlimited
 IDENT = ("batch_name", "student_code", "student_name", "email", "mobile")
 
 
@@ -93,6 +101,24 @@ def knap(budget, items, repeat):
         for x in rng:
             best[x] = max(best[x], best[x - w] + v)
     return best[-1]
+
+
+def best_table(items, cap, max_units):
+    """best[x] = most Masai could pay out for a student with x*UNIT Miles.
+    items: (miles, cost, repeatable). cap = max claims of a repeatable item (None = unlimited)."""
+    best = [0] * (max_units + 1)
+    for miles, c, rep_ in items:
+        w = miles // UNIT
+        if w > max_units:
+            continue
+        if rep_ and cap is None:
+            for x in range(w, max_units + 1):
+                best[x] = max(best[x], best[x - w] + c)
+        else:
+            for _ in range(cap if (rep_ and cap) else 1):
+                for x in range(max_units, w - 1, -1):
+                    best[x] = max(best[x], best[x - w] + c)
+    return best
 
 
 def load(srcs):
@@ -163,6 +189,14 @@ def main():
         out.append(row)
         by[r["batch_name"]].append(row)
 
+    rep_items = [(mi, cost(c), nm in REPEATABLE) for nm, mi, c in catalog if cost(c) > 0]
+    top_units = max([x["miles"] for x in out] + [0]) // UNIT
+    tables = {cap: best_table(rep_items, cap, top_units) for cap in CAPS}
+    capname = lambda c: "unlimited" if c is None else f"cap{c}"
+    for x in out:
+        for cap in CAPS:
+            x["max_repeat_" + capname(cap)] = tables[cap][x["miles"] // UNIT] if x["eligible"] else 0
+
     od = ROOT / "data/output"
     od.mkdir(parents=True, exist_ok=True)
     simple = od / f"payout_simple_{a.catalog}.csv"
@@ -177,6 +211,14 @@ def main():
         w.writeheader()
         w.writerows(out)
 
+    with open(od / f"payout_simple_repeats_{a.catalog}.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["batch", "student_code", "student", "miles_achieved", "minimum_availing_cost", "maximum_availing_cost_single",
+                    "max_cost_if_repeating_cap2", "max_cost_if_repeating_cap3", "max_cost_if_repeating_unlimited"])
+        for x in sorted(out, key=lambda x: (x["batch"], -x["miles"])):
+            w.writerow([x["batch"], x["learner_id"], x["name"], x["miles"],
+                        "n/a" if x["min_cost"] is None else x["min_cost"], "n/a" if x["max_cost"] is None else x["max_cost"],
+                        x["max_repeat_cap2"], x["max_repeat_cap3"], x["max_repeat_unlimited"]])
     print(f"catalogue: {a.catalog} ({len(catalog)} rewards, lowest paid one needs {lowest:,} Miles) | boost x{a.boost}")
     if unknown:
         print("cost not confirmed (counted as Rs 0):", ", ".join(unknown))
@@ -205,6 +247,12 @@ def main():
         w = csv.DictWriter(f, fieldnames=keys)
         w.writeheader()
         w.writerows(summ)
+    print("\nWORST CASE WITH REPEATS (every student spends all Miles on the costliest-to-Masai mix; repeatable rewards capped per student)")
+    print(f"{'batch':<22}" + "".join(f"{('cap ' + str(c)) if c else 'unlimited':>14}" for c in CAPS))
+    for b, rs in sorted(by.items()) + [("ALL", out)]:
+        print(f"{b[:21]:<22}" + "".join(f"{sum(x['max_repeat_' + capname(c)] for x in rs):>14,}" for c in CAPS))
+    tm = sum(x["miles"] for x in out)
+    print(f"{'  as % of all Miles':<22}" + "".join(f"{100 * sum(x['max_repeat_' + capname(c)] for x in out) / tm:>13.1f}%" for c in CAPS))
     print(f"\nwritten: {simple.name}, payout_detail_{a.catalog}.csv, payout_batches_{a.catalog}.csv in data/output/")
     if rev or a.revenue_per_student:
         for s in summ:
