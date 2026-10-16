@@ -1,48 +1,69 @@
 """Payout simulation: what each learner's Miles are worth in rupees if they redeem.
 
-    python3 ops/payout_sim.py                                  # both batches, public cumulative report
-    python3 ops/payout_sim.py --source batch1.csv batch2.csv   # your own Metabase exports (same columns)
-    python3 ops/payout_sim.py --revenue-per-student 60000      # adds cost as % of revenue
-    python3 ops/payout_sim.py --boost 1.15                     # stand-in for the streak boost (cumulative data has none)
+    python3 ops/payout_sim.py --source export1.csv [export2.csv ...]       # full catalogue (default)
+    python3 ops/payout_sim.py --source export.csv --catalog core            # only the confirmed rewards
+    python3 ops/payout_sim.py --source export.csv --revenue-per-student 60000
+    python3 ops/payout_sim.py --source export.csv --boost 1.15              # stand-in for the streak boost
 
-Optional inputs (data/input/):
-    revenue.csv               batch_name,revenue_per_student   (overrides --revenue-per-student per batch)
-    placement_eligibility.csv email,eligible                   (eligible = 1/0 or yes/no; also accepts learner_id)
+Per student: Miles achieved, MINIMUM availing cost = cheapest paid reward they can afford, MAXIMUM availing cost =
+costliest single reward they can afford. Rewards that cost Masai Rs 0 (recognition, access) are not counted as the
+"minimum": every claimable reward must have a real cost. Students under the lowest Miles price show "n/a".
 
-Per learner it reports: Miles, the cheapest reward they could claim and its cost (the "minimum"), the costliest single
-reward they could claim, and the most Masai could pay if they spent every Mile on the costliest rewards
-(each reward once, and repeatable).
-
-Rates and rewards follow the NEW structure agreed for the rollout; they are defined below (not read from the app config)
-so the simulation can run before the app is changed. Edit COSTS if a figure changes.
+Optional inputs in data/input/: revenue.csv (batch_name,revenue_per_student),
+placement_eligibility.csv (email or learner_id, eligible 1/0).
 """
-import argparse, csv, io, json, statistics as st, urllib.request
+import argparse, csv, io, urllib.request
 from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-AGG = "https://metabase.masaischool.com/public/question/d9be39f3-dab4-42bc-915f-0766cec6d5db.csv"
-
 RATES = dict(ml=200, mr=100, nl=150, nr=50, p=100, ga=300, ge=300, me=150)   # new lecture rates
+UNIT = 500
+DRIVE_MILES = 25000
 
-# (reward, Miles needed, cost to Masai in Rs). None = cost not confirmed yet (treated as 0 and flagged).
-COSTS = [
-    ("1:1 doubt session with your CC (30 min)", 1000, 0),
-    ("Mock interview", 5000, 0),
-    ("Interview preparation assignment", 5000, 0),
-    ("Resume building support", 5000, 0),
+# (reward, Miles needed, cost to Masai Rs). cost None = not confirmed (treated as 0 and flagged)
+CORE = [
+    ("1:1 doubt session with your CC (30 min)", 1000, 1500),
+    ("Mock interview", 5000, 1500),
+    ("Interview preparation assignment", 5000, 1500),
+    ("Resume building support", 5000, 1500),
     ("1:1 session with a TA (30 min)", 5000, 1500),
     ("Free hackathon entry", 5000, 1000),
-    ("Institute t-shirt", 5000, None),
+    ("Institute t-shirt", 5000, 500),
     ("50% off the Campus Immersion fee", 8000, 1000),
-    ("Institute hoodie", 8000, None),
+    ("Institute hoodie", 8000, 800),
     ("1:1 session with an IM (30 min)", 20000, 4000),
-    ("100% off a one-month AI tool subscription", 20000, 2500),   # 80% was Rs 2,000; assumed Rs 2,500 for 100%
+    ("One-month AI tool subscription", 20000, 2000),
     ("Interview with a company", 25000, None),
     ("Participation in hiring drive", 25000, None),
 ]
-DRIVE_MILES = 25000
-UNIT = 1000
+# suggested additions: Miles at ~6 Miles per Rs of item cost, cost = indicative worst case within the Rs 2,000 cap
+SUGGESTED = [
+    ("Keyboard / desk mat, XL", 3500, 600), ("Webcam cover + cable organiser kit", 2000, 300),
+    ("Laptop stand", 5500, 900), ("Monitor riser with organiser", 5500, 900), ("Laptop cooling pad", 6000, 1000),
+    ("Seat or lumbar cushion", 6000, 1000), ("Wireless mouse", 5000, 800), ("Laptop sleeve", 5000, 800),
+    ("USB-C hub, 4-in-1", 7000, 1200), ("LED desk lamp", 7000, 1200), ("Compact wireless keyboard", 9000, 1500),
+    ("Laptop backpack", 9000, 1500), ("Mechanical keyboard, budget", 12000, 2000), ("Ergonomic vertical mouse", 9000, 1500),
+    ("Wired earphones with mic", 3000, 500), ("Bluetooth neckband", 5500, 900), ("Over-ear headphones with mic", 9000, 1500),
+    ("1080p webcam", 9000, 1500), ("True wireless earbuds", 11000, 1800), ("USB condenser mic", 12000, 2000),
+    ("Presenter / clicker remote", 5000, 800), ("Pen drive 128GB", 4000, 700), ("Power bank 10,000 mAh", 6000, 1000),
+    ("Portable SSD 256GB", 12000, 2000), ("Fitness band", 11000, 1800), ("Insulated bottle", 3000, 500),
+    ("Blue-light glasses", 3500, 600),
+    ("Amazon / Flipkart voucher Rs 500", 3000, 500), ("Amazon / Flipkart voucher Rs 1,000", 6000, 1000),
+    ("Amazon / Flipkart voucher Rs 2,000", 12000, 2000), ("Food voucher Rs 500", 3000, 500),
+    ("Coffee voucher Rs 500", 3000, 500), ("Music / OTT subscription, 3 months", 3000, 500), ("Books voucher", 6000, 1000),
+    ("Canva Pro, 1 month", 3000, 500), ("Book: Clean Code / DDIA / Inspired", 5000, 800),
+    ("AI coding assistant, 1 month", 5000, 850), ("Online course voucher", 6000, 1000),
+    ("Domain + hosting, 1 year", 6000, 1000), ("Interview-prep platform, 1 month", 12000, 2000),
+    ("LinkedIn Premium, 1 month", 12000, 2000),
+    ("Choose the next masterclass topic", 4000, 0), ("Priority seat in next masterclass", 3000, 0),
+    ("Portfolio / GitHub / LinkedIn profile review", 5000, 0), ("Virtual coffee with alumnus / mentor", 6000, 500),
+    ("Lunch or call with a founder / leader", 8000, 0), ("Hackathon team mentor session", 5000, 0),
+    ("Conference / meetup ticket", 9000, 1500),
+    ("Wall of Fame + LinkedIn shout-out", 2000, 0), ("Personalised achievement certificate", 2500, 0),
+    ("Sticker pack", 1000, 150), ("Notebook or cap", 2000, 300), ("Branded sipper", 2500, 400),
+]
+IDENT = ("batch_name", "student_code", "student_name", "email", "mobile")
 
 
 def n(x):
@@ -64,12 +85,6 @@ def miles_of(r, boost):
     return int(base * boost)
 
 
-def ceiling(r):
-    return (n(r["mandatory_total"]) * RATES["ml"] + n(r["nonmandatory_total"]) * RATES["nl"]
-            + n(r["practice_assignment_total"]) * RATES["p"] + n(r["graded_assignment_total"]) * RATES["ga"]
-            + n(r["graded_evaluation_total"]) * RATES["ge"] + n(r["mock_evaluation_total"]) * RATES["me"])
-
-
 def knap(budget, items, repeat):
     best = [0] * (budget // UNIT + 1)
     for w, v in items:
@@ -81,17 +96,32 @@ def knap(budget, items, repeat):
 
 
 def load(srcs):
-    rows = []
+    """One row per (batch, student); duplicates merged by taking the higher value per count."""
+    merged = {}
     for s in srcs:
         t = (urllib.request.urlopen(s, timeout=120).read().decode("utf-8-sig") if s.startswith("http")
              else Path(s).read_text(encoding="utf-8-sig"))
-        rows += list(csv.DictReader(io.StringIO(t)))
-    return list({r["student_code"]: r for r in rows}.values())     # one row per learner
+        for r in csv.DictReader(io.StringIO(t)):
+            k = (r["batch_name"], r["student_code"])
+            if k not in merged:
+                merged[k] = dict(r)
+                continue
+            cur = merged[k]
+            act = lambda x: sum(n(x[f]) for f in x if f.endswith(("attended_live", "attended_rec", "completed")))
+            better = act(r) > act(cur)
+            for f in r:
+                if f not in IDENT and n(r[f]) > n(cur.get(f, 0)):
+                    cur[f] = r[f]
+            if better:
+                for f in IDENT:
+                    cur[f] = r[f]
+    return list(merged.values())
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--source", nargs="+", default=[AGG])
+    ap.add_argument("--source", nargs="+", required=True)
+    ap.add_argument("--catalog", choices=["core", "full"], default="full")
     ap.add_argument("--boost", type=float, default=1.0)
     ap.add_argument("--revenue-per-student", type=float, default=None)
     a = ap.parse_args()
@@ -107,77 +137,79 @@ def main():
             key = (r.get("email") or r.get("learner_id") or "").strip().lower()
             elig[key] = str(r.get("eligible", "")).strip().lower() in ("1", "yes", "y", "true", "eligible")
 
-    unknown = [r for r, _, c in COSTS if c is None]
+    catalog = CORE + (SUGGESTED if a.catalog == "full" else [])
+    unknown = [r for r, _, c in catalog if c is None]
     cost = lambda c: 0 if c is None else c
-    items_all = [(m, cost(c)) for _, m, c in COSTS if cost(c) > 0]
+    items = [(m, cost(c)) for _, m, c in catalog if cost(c) > 0]
+    lowest = min(m for _, m, c in catalog if cost(c) > 0)
 
     out, by = [], defaultdict(list)
     for r in load(a.source):
         m = miles_of(r, a.boost)
-        aff = [(nm, mi, cost(c)) for nm, mi, c in COSTS if mi <= m]
-        cheapest = min(aff, key=lambda x: (x[2], x[1])) if aff else None
-        priciest = max(aff, key=lambda x: (x[2], x[1])) if aff else None
-        budget = [(mi, c) for mi, c in items_all if mi <= m]
-        row = {
-            "learner_id": r["student_code"], "name": r.get("student_name", ""), "email": r.get("email", ""),
-            "batch": r["batch_name"], "miles": m, "rewards_affordable": len(aff),
-            "min_reward": cheapest[0] if cheapest else "", "min_cost": cheapest[2] if cheapest else 0,
-            "max_single_reward": priciest[0] if priciest else "", "max_single_cost": priciest[2] if priciest else 0,
-            "max_total_each_once": knap(m, budget, False) if budget else 0,
-            "max_total_repeat": knap(m, budget, True) if budget else 0,
-            "ceiling_miles": ceiling(r), "drive_miles_eligible": int(m >= DRIVE_MILES),
-        }
+        paid = [(nm, mi, cost(c)) for nm, mi, c in catalog if mi <= m and cost(c) > 0]
+        cheapest = min(paid, key=lambda x: (x[2], x[1])) if paid else None
+        priciest = max(paid, key=lambda x: (x[2], x[1])) if paid else None
+        budget = [(mi, c) for mi, c in items if mi <= m]
+        row = {"learner_id": r["student_code"], "name": r.get("student_name", ""), "email": r.get("email", ""),
+               "batch": r["batch_name"], "miles": m, "eligible": int(bool(paid)),
+               "min_reward": cheapest[0] if cheapest else "", "min_cost": cheapest[2] if cheapest else None,
+               "max_reward": priciest[0] if priciest else "", "max_cost": priciest[2] if priciest else None,
+               "max_total_each_once": knap(m, budget, False) if budget else 0,
+               "drive_miles_eligible": int(m >= DRIVE_MILES)}
         if elig:
-            k = row["email"].strip().lower()
-            pe = elig.get(k, elig.get(row["learner_id"].lower()))
+            pe = elig.get(row["email"].strip().lower(), elig.get(row["learner_id"].lower()))
             row["placement_eligible"] = "" if pe is None else int(pe)
             row["miles_but_not_placement"] = int(row["drive_miles_eligible"] == 1 and pe is False)
         out.append(row)
         by[r["batch_name"]].append(row)
 
-    (ROOT / "data/output").mkdir(parents=True, exist_ok=True)
-    with open(ROOT / "data/output/payout_students.csv", "w", newline="") as f:
+    od = ROOT / "data/output"
+    od.mkdir(parents=True, exist_ok=True)
+    simple = od / f"payout_simple_{a.catalog}.csv"
+    with open(simple, "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["batch", "student_code", "student", "miles_achieved", "minimum_availing_cost", "maximum_availing_cost"])
+        for x in sorted(out, key=lambda x: (x["batch"], -x["miles"])):
+            w.writerow([x["batch"], x["learner_id"], x["name"], x["miles"],
+                        "n/a" if x["min_cost"] is None else x["min_cost"], "n/a" if x["max_cost"] is None else x["max_cost"]])
+    with open(od / f"payout_detail_{a.catalog}.csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(out[0]))
         w.writeheader()
         w.writerows(out)
 
-    print(f"learners: {len(out)} | boost x{a.boost} | rewards with unconfirmed cost (treated as Rs 0): {', '.join(unknown)}\n")
-    hdr = f"{'batch':<24}{'n':>5}{'total Miles':>12}{'avg':>7}{'max':>7}{'ceiling avg':>12}{'min cost':>10}{'max single':>12}{'max total*':>12}{'max repeat':>12}"
-    print(hdr)
+    print(f"catalogue: {a.catalog} ({len(catalog)} rewards, lowest paid one needs {lowest:,} Miles) | boost x{a.boost}")
+    if unknown:
+        print("cost not confirmed (counted as Rs 0):", ", ".join(unknown))
+    print(f"\n{'batch':<22}{'students':>9}{'eligible':>9}{'total Miles':>13}{'avg':>7}{'min cost':>11}{'max cost':>12}{'max/elig':>9}{'each-once':>12}")
     summ = []
-    for b, rs in list(by.items()) + [("ALL", out)]:
-        t = lambda k: sum(x[k] for x in rs)
-        line = dict(batch=b, learners=len(rs), total_miles=t("miles"), avg_miles=round(t("miles") / len(rs)),
-                    max_miles=max(x["miles"] for x in rs), avg_ceiling=round(t("ceiling_miles") / len(rs)),
-                    min_cost=t("min_cost"), max_single_cost=t("max_single_cost"),
-                    max_total_each_once=t("max_total_each_once"), max_total_repeat=t("max_total_repeat"),
-                    drive_miles_eligible=t("drive_miles_eligible"))
+    for b, rs in sorted(by.items()) + [("ALL", out)]:
+        el = [x for x in rs if x["eligible"]]
+        t = lambda k: sum(x[k] or 0 for x in rs)
+        s = dict(batch=b, students=len(rs), eligible=len(el), total_miles=t("miles"), avg_miles=t("miles") // len(rs),
+                 min_cost=t("min_cost"), max_cost=t("max_cost"), max_each_once=t("max_total_each_once"),
+                 drive_miles_eligible=t("drive_miles_eligible"))
         r_ = rev.get(b, a.revenue_per_student)
         if r_:
-            R = r_ * len(rs)
-            line.update(revenue=R, max_single_pct=round(100 * line["max_single_cost"] / R, 2),
-                        max_total_pct=round(100 * line["max_total_each_once"] / R, 2),
-                        max_repeat_pct=round(100 * line["max_total_repeat"] / R, 2))
+            s["revenue"] = r_ * len(rs)
+            s["min_pct_revenue"] = round(100 * s["min_cost"] / s["revenue"], 2)
+            s["max_pct_revenue"] = round(100 * s["max_cost"] / s["revenue"], 2)
         if elig:
-            line["miles_but_not_placement"] = t("miles_but_not_placement")
-        summ.append(line)
-        print(f"{b[:23]:<24}{len(rs):>5}{line['total_miles']:>12,}{line['avg_miles']:>7,}{line['max_miles']:>7,}{line['avg_ceiling']:>12,}"
-              f"{line['min_cost']:>10,}{line['max_single_cost']:>12,}{line['max_total_each_once']:>12,}{line['max_total_repeat']:>12,}")
-    print("  * max total = every learner spends all Miles on the costliest rewards, each reward at most once")
-    with open(ROOT / "data/output/payout_batches.csv", "w", newline="") as f:
-        keys = sorted({k for s in summ for k in s}, key=lambda k: list(summ[0]).index(k) if k in summ[0] else 99)
+            s["miles_but_not_placement"] = t("miles_but_not_placement")
+        summ.append(s)
+        print(f"{b[:21]:<22}{len(rs):>9}{len(el):>9}{s['total_miles']:>13,}{s['avg_miles']:>7,}{s['min_cost']:>11,}{s['max_cost']:>12,}"
+              f"{(s['max_cost'] // len(el)) if el else 0:>9,}{s['max_each_once']:>12,}")
+    with open(od / f"payout_batches_{a.catalog}.csv", "w", newline="") as f:
+        keys = []
+        for s in summ:
+            keys += [k for k in s if k not in keys]
         w = csv.DictWriter(f, fieldnames=keys)
         w.writeheader()
         w.writerows(summ)
+    print(f"\nwritten: {simple.name}, payout_detail_{a.catalog}.csv, payout_batches_{a.catalog}.csv in data/output/")
     if rev or a.revenue_per_student:
-        print("\ncost as % of revenue:")
         for s in summ:
             if "revenue" in s:
-                print(f"  {s['batch'][:24]:<26} revenue Rs {s['revenue']:>12,.0f} | max single {s['max_single_pct']}% | max total {s['max_total_pct']}% | max repeat {s['max_repeat_pct']}%")
-    else:
-        print("\n(no revenue given: pass --revenue-per-student or data/input/revenue.csv to get cost as % of revenue)")
-    if not elig:
-        print("(no data/input/placement_eligibility.csv: cannot compute 'Miles-eligible but not placement-eligible')")
+                print(f"  {s['batch'][:24]:<26} revenue Rs {s['revenue']:>13,.0f} | min {s['min_pct_revenue']}% | max {s['max_pct_revenue']}%")
 
 
 if __name__ == "__main__":
