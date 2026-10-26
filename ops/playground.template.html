@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Miles cost playground</title>
 <style>
-:root{--red:#d71f3a;--red-d:#a31a2d;--ink:#14161f;--mut:#6b7280;--line:#e6e8ee;--bg:#f4f5f8;--card:#fff;--pink:#fdecef;--amber:#fff1c2;--font:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+:root{--red:#d71f3a;--red-d:#a31a2d;--ink:#14161f;--mut:#6b7280;--line:#e6e8ee;--bg:#f4f5f8;--card:#fff;--pink:#fdecef;--amber:#fff1c2;--green:#1a8f58;--font:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 *{box-sizing:border-box}html,body{margin:0}
 body{font-family:var(--font);font-size:15px;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
 header{background:linear-gradient(110deg,#b8182c,#5a1019 65%,#1d2129);color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
@@ -15,144 +15,156 @@ header h1{margin:0;font-size:19px}header small{opacity:.85}
 .seg{display:inline-flex;background:rgba(255,255,255,.14);border-radius:9px;padding:3px}
 .seg button{border:0;background:none;color:#fff;font:600 13px var(--font);padding:5px 11px;border-radius:7px;cursor:pointer}
 .seg button.on{background:#fff;color:var(--red-d)}
-.top{display:grid;grid-template-columns:minmax(290px,310px) minmax(0,1fr);gap:16px;padding:16px 24px 0;align-items:start}
-@media(max-width:1000px){.top{grid-template-columns:1fr}}
+main{max-width:1500px;margin:0 auto;padding:16px 24px 32px}
 .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 1px 6px rgba(20,22,31,.06);margin-bottom:16px}
-.card h2{margin:0 0 12px;font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.card h2{margin:0 0 4px;font-size:16px}
+.card .sub{margin:0 0 14px;color:var(--mut);font-size:13.5px}
 label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mut)}
-input[type=number],select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:8px;font:600 15px var(--font);color:var(--ink);background:#fff;font-variant-numeric:tabular-nums}
-input[type=number]:focus{outline:2px solid #f3b8c1}
+input[type=number],input[type=text],input[type=search],select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:8px;font:600 15px var(--font);color:var(--ink);background:#fff;font-variant-numeric:tabular-nums}
+input:focus,select:focus{outline:2px solid #f3b8c1}
+input[type=range]{accent-color:var(--red);width:100%}
+.tg{width:18px;height:18px;accent-color:var(--red)}
 .chg{background:var(--amber)!important}
-.sticky{position:sticky;top:0;z-index:5}
-.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.set{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;align-items:end}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:800px){.kp{grid-template-columns:1fr}}
 .kpi{border-radius:12px;padding:14px;background:#f6f6f8}
 .kpi.hi{background:var(--pink)}
 .kpi small{display:block;color:var(--mut);font-size:13px;font-weight:600}
 .kpi b{display:block;font-size:30px;margin:2px 0;letter-spacing:-.5px}
-.kpi .mm{font-size:14px;font-weight:600;margin:2px 0 4px;color:#a31a2d}.kpi .mm i{font-style:normal;font-weight:400;color:var(--mut)}
 .kpi span{font-size:13px;color:var(--mut)}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row.sb{justify-content:space-between}
-.sl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-input[type=range]{accent-color:var(--red)}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--mut);margin-top:10px;flex-wrap:wrap}
+.p1{color:var(--green)}.p2{color:#b86e00}.p3{color:#c4182f}
 table{width:100%;border-collapse:collapse}
-th,td{padding:9px 5px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th,td{padding:8px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
 th:first-child,td:first-child{text-align:left}
-th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);background:#fff}
-td.pct{font-weight:700}td.m{color:var(--mut);font-size:13px}
-.grp{border-left:1px solid var(--line)}
-.p1{color:#1a8f58}.p2{color:#b86e00}.p3{color:#c4182f}
-tr.tot td{font-weight:700;border-top:2px solid var(--ink);background:#fafafc}
-.res{overflow:auto}
-input.fee{width:78px;padding:5px 6px;font-size:14px}
-#tbl table{font-size:14px}
-.cardctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;align-items:end;margin-bottom:12px}
-.patrow{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:13px;margin-bottom:12px}
-.patrow input{width:64px;margin-left:4px;padding:5px 7px}
-.muted{color:var(--mut)}
-.ct th,.ct td{padding:6px 5px;font-size:12.5px}.ct th{font-size:10.5px}.ct input{width:70px;padding:4px 6px;font-size:13px}
-.ct td.rt{color:var(--mut);font-size:12.5px}
-.ct tr.dis td{opacity:.5}
-.legend{display:flex;gap:14px;font-size:13px;color:var(--mut);margin-top:10px}
-.note{color:var(--mut);font-size:13px;margin-top:10px;line-height:1.55}
-/* rewards editor */
-.rwcard{margin:0 24px 24px}
-.tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-.tools input[type=search]{flex:1;min-width:200px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font:500 14px var(--font)}
-.gh{display:flex;align-items:center;gap:10px;background:#f1f2f6;border-radius:10px;padding:9px 12px;margin:14px 0 6px;font-weight:700;cursor:pointer;user-select:none}
-.gh .c{color:var(--mut);font-weight:500;font-size:13px}.gh .sp{flex:1}.gh .car{transition:transform .15s}.gh.cl .car{transform:rotate(-90deg)}
-.rwt th,.rwt td{padding:7px 8px}
-.rwt th:nth-child(2){text-align:left}
-.rwt td.n{text-align:left;white-space:normal;min-width:240px;font-weight:600}
-.rwt tr.off td{opacity:.45}
-.step{display:inline-flex;align-items:center;gap:0}
-.step button{width:30px;height:34px;border:1px solid var(--line);background:#fff;font:700 16px var(--font);cursor:pointer;color:var(--ink)}
-.step button:first-child{border-radius:8px 0 0 8px;border-right:0}.step button:last-child{border-radius:0 8px 8px 0;border-left:0}
-.step input{width:92px;border-radius:0;text-align:center}
-.eff{font-weight:600}.eff.hot{color:var(--red)}.eff small{color:var(--mut);font-weight:400}
-.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:99px;padding:2px 8px;margin-left:4px;vertical-align:middle;cursor:default}
-.tag.a{background:#e5f5ec;color:#1a8f58}.tag.m{background:#fff1c2;color:#8a5a00;cursor:pointer}.tag.m0{background:#eceef1;color:var(--mut)}
-.tbd{color:var(--red);font-size:12px;font-weight:700}
-.x{border:0;background:none;color:var(--mut);cursor:pointer;font-size:16px}
-.tg{width:18px;height:18px;accent-color:var(--red)}
+th{font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);background:#fff}
+td input[type=number]{width:86px;padding:5px 7px;font-size:14px}
+td.n{text-align:left;white-space:normal;min-width:230px;font-weight:600}
+tr.tot td{font-weight:700;border-top:2px solid var(--ink)}
+.pill{display:inline-block;font-weight:700;font-size:12.5px;border-radius:99px;padding:2px 10px}
+.pill.ok{background:#e1f4e9;color:var(--green)}.pill.lo{background:#fff1c2;color:#8a5a00}.pill.hi{background:#fde1e4;color:#c4182f}
+.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:99px;padding:2px 8px;margin-left:4px;vertical-align:middle;background:#eceef1;color:var(--mut)}
+.tag.m{background:var(--amber);color:#8a5a00;cursor:pointer}
+.tag.a{background:#e5f5ec;color:var(--green)}
+.scroll{overflow:auto}
+details{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:0 14px}
+details>summary{cursor:pointer;padding:12px 0;font-weight:700;font-size:14px;list-style:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary:after{content:"+";float:right;color:var(--mut)}
+details[open]>summary:after{content:"–"}
+.adv{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding-bottom:14px}
+.gh{display:flex;align-items:center;gap:10px;background:#f1f2f6;border-radius:10px;padding:9px 12px;margin:12px 0 4px;font-weight:700;cursor:pointer;user-select:none}
+.gh .c{color:var(--mut);font-weight:500;font-size:13px}.gh .sp{flex:1}
+.tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.tools input[type=search]{flex:1;min-width:200px}
+.tools select{width:auto;min-width:240px}
+.out{color:#9aa0ac;font-weight:500}
+.note{color:var(--mut);font-size:13px;line-height:1.55;margin-top:12px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#14161f;color:#fff;padding:11px 18px;border-radius:10px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);display:none;z-index:50;max-width:92vw}
 </style>
 </head>
 <body>
 <header>
-  <div><h1>Miles cost playground</h1><small>Change anything. Everything recalculates instantly. Yellow = changed from the default.</small></div>
+  <div><h1>Miles cost playground</h1><small>Change anything; the results update at once. Yellow = changed from the default.</small></div>
   <div class="row">
     <span class="seg" id="unit"><button data-u="L" class="on">Lakh</button><button data-u="R">Full ₹</button></span>
-    <button class="btn" id="save" title="Download every setting as a JSON file">⬇ Save config</button><button class="btn" id="load" title="Load a saved JSON config">⬆ Load config</button><input type="file" id="file" accept=".json,application/json" style="display:none">
-    <button class="btn" id="preset">Doubt session → 5,000 Miles</button><button class="btn" id="reset">Reset all</button><button class="btn" id="csv">Download table (CSV)</button>
+    <button class="btn" id="save">⬇ Save config</button><button class="btn" id="load">⬆ Load config</button><input type="file" id="file" accept=".json,application/json" style="display:none">
+    <button class="btn" id="reset">Reset all</button><button class="btn" id="csv">Download table (CSV)</button>
   </div>
 </header>
-<div id="toast" style="position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#14161f;color:#fff;padding:11px 18px;border-radius:10px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);display:none;z-index:50;max-width:92vw"></div>
+<div id="toast"></div>
+<main>
 
-<div class="top">
-  <div>
-    <div class="card"><h2>1 · Miles per activity</h2>
-      <div class="grid2" id="rates"></div>
-      <label class="f" style="margin-top:12px">Streak boost on everyone's Miles (1.0 = none, 1.15 ≈ typical)<input type="number" id="boost" step="0.05" min="1" max="1.5"></label>
-    </div>
-    <div class="card"><h2>2 · Price rewards in Miles from their cost</h2>
-      <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="auto" class="tg"> Auto-set Miles from cost</label>
-      <div class="grid2" style="margin-top:10px">
-        <label class="f">Miles per ₹1<input type="number" id="mpr" min="0.1" step="0.5"></label>
-        <label class="f">Round Miles to nearest<select id="rnd"><option value="50">50</option><option value="100">100</option><option value="500">500</option><option value="1000">1,000</option></select></label>
-      </div>
-      <div class="note" id="autonote"></div>
-    </div>
-    <div class="card"><h2>3 · How many claim, and how often</h2>
-      <div class="sl"><span style="min-width:130px">Students who redeem</span><input type="range" id="share" min="5" max="100" step="5" style="flex:1"><b id="shareV" style="width:48px;text-align:right"></b></div>
-      <label class="f" style="margin-top:12px">Worst case: each repeatable reward can be claimed up to…
-        <select id="cap"><option value="1">1 time (no repeats)</option><option value="2">2 times</option><option value="3">3 times</option><option value="5">5 times</option><option value="0">unlimited</option></select></label>
-      <div class="note">Tick <b>Repeat</b> on a reward below to allow repeat claims.</div>
-    </div>
+<div class="card">
+  <h2>1 · Settings</h2>
+  <p class="sub">Three numbers decide the cost. Everything else is in the tables below.</p>
+  <div class="set">
+    <label class="f">Aim for this cost, % of each batch's revenue<input type="number" id="target" step="0.05" min="0.1"></label>
+    <label class="f"><span>Students who redeem <b id="shareV"></b></span><input type="range" id="share" min="5" max="100" step="5"></label>
+    <label class="f">Repeat claims allowed (repeatable rewards)<select id="cap"><option value="1">Once only</option><option value="2">Up to 2</option><option value="3">Up to 3</option><option value="5">Up to 5</option><option value="0">Unlimited</option></select></label>
+    <label class="f">Round all Miles to the nearest<select id="step"><option value="50">50</option><option value="100">100</option><option value="250">250</option><option value="500">500</option></select></label>
+    <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="fit" class="tg"> Set each batch's price level from its fee</label>
   </div>
-  <div>
-    <div class="card sticky"><h2>Total, all batches</h2><div class="sum" id="kpis"></div>
-      <div class="legend"><span><b class="p1">green</b> under 10% of revenue</span><span><b class="p2">amber</b> 10–25%</span><span><b class="p3">red</b> over 25%</span></div></div>
-    <div class="card res"><h2>Cost per batch</h2><div id="tbl"></div>
-      <div class="note"><b>Low</b> = every student who can claim takes the <i>cheapest</i> reward. <b>High</b> = each takes the <i>costliest</i> reward they can afford, once. <b>Worst case</b> = each spends all Miles on the costliest mix, repeating repeatable rewards up to the limit. <b>Miles</b> = Miles those redemptions use up. All multiplied by the share who redeem. Revenue = fee × students (edit the fee in the table).</div></div>
-  </div>
+  <details><summary>Advanced: how Miles are earned</summary>
+    <div class="adv" id="rates"></div>
+    <div class="adv">
+      <label class="f">Streak boost on everyone's Miles (1 = none)<input type="number" id="boost" step="0.05" min="1" max="1.5"></label>
+      <label class="f">Mandatory lectures a week<input type="number" data-pat="mand" min="0" step="1"></label>
+      <label class="f">Optional sessions a week<input type="number" data-pat="opt" min="0" step="1"></label>
+      <label class="f">+ buffer sessions a week<input type="number" data-pat="buf" min="0" step="1"></label>
+      <label class="f">Practice items per mandatory lecture<input type="number" data-pat="pracItems" min="0" step="1"></label>
+      <label class="f">Evaluation items in the programme<input type="number" data-pat="evalItems" min="0" step="1"></label>
+      <label class="row" style="gap:8px;align-self:end"><input type="checkbox" id="caps" class="tg"> Cap optional, practice and evaluations at this pattern</label>
+    </div>
+  </details>
 </div>
 
-<div class="card rwcard"><h2>4 · Rewards: Miles needed and cost to Masai</h2>
+<div class="card">
+  <h2>Total, all batches</h2>
+  <div class="kp" id="kpis"></div>
+  <div class="legend"><span><b class="p1">green</b> 1–1.5% of revenue</span><span><b class="p2">amber</b> under 1%</span><span><b class="p3">red</b> over 1.5%</span><span><b>Low</b> cheapest reward each · <b>High</b> best reward each, once · <b>Worst case</b> every Mile spent</span></div>
+</div>
+
+<div class="card">
+  <h2>2 · Batches</h2>
+  <p class="sub">Each batch's <b>Max Miles</b> comes from its length. Rewards are priced as a share of it (section 3), so every batch has the full ladder.
+    <b>Price level</b> 1.0 means the ladder exactly as written; a higher level makes everyday rewards cost more Miles, which keeps low-fee batches within budget. Type a level to lock it.</p>
+  <div class="scroll"><div id="tbl"></div></div>
+</div>
+
+<div class="card">
+  <h2>3 · Reward ladder</h2>
+  <p class="sub">A reward costs <b>% of the batch's Max Miles</b> (rounded). <b>Fixed</b> rewards keep that percentage in every batch (a founder connect at 90% is 90% everywhere); the others are scaled by the batch's price level.</p>
   <div class="tools"><input type="search" id="q" placeholder="Search a reward…">
-    <button class="btn d" id="allon">Turn all on</button><button class="btn d" id="alloff">Turn all off</button><button class="btn d" id="add">+ Add reward</button></div>
+    <label class="row" style="gap:8px">Show Miles for <select id="ref"></select></label>
+    <button class="btn d" id="allon">All on</button><button class="btn d" id="alloff">All off</button></div>
   <div id="rwroot"></div>
-  <div class="note">Use <b>−</b> / <b>+</b> or type a value. <b>₹ per 1,000 Miles</b> shows how expensive a reward is to Masai for the Miles it uses: <span style="color:var(--red);font-weight:700">red = over ₹500 per 1,000 Miles</span>, which is where cost runs away when repeats are allowed. A cost of 0 adds nothing. <span class="tbd">?</span> = cost not confirmed yet, counted as 0.</div>
 </div>
 
-<div class="card rwcard" id="cardsec"><h2>5 · Batch rate cards</h2>
-  <div class="cardctl">
-    <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="c_enabled" class="tg"> Use a rate card per batch</label>
-    <label class="f">Target cost, % of batch revenue<input type="number" id="c_target" step="0.05" min="0.1"></label>
-    <label class="f">Engagement: avg student earns this share of the maximum<input type="number" id="c_e" step="0.01" min="0.05" max="1"></label>
-    <label class="f">Cost conversion: High cost ÷ (Miles × ₹ per Mile)<input type="number" id="c_rho" step="0.01" min="0.1" max="1.5"></label>
-    <label class="row" style="gap:8px"><input type="checkbox" id="c_caps" class="tg"> Cap Miles-earning optional, practice and evaluations at the pattern</label>
-  </div>
-  <div class="patrow">
-    <span class="muted">Weekly pattern:</span>
-    <label>mandatory <input type="number" data-pat="mand" step="1" min="0"></label>
-    <label>optional <input type="number" data-pat="opt" step="1" min="0"></label>
-    <label>+ buffer <input type="number" data-pat="buf" step="1" min="0"></label>
-    <label>practice items per mandatory <input type="number" data-pat="pracItems" step="1" min="0"></label>
-    <label>evaluation items in programme <input type="number" data-pat="evalItems" step="1" min="0"></label>
-  </div>
-  <div class="tools"><button class="btn d" id="clearK">Use automatic multipliers</button><button class="btn d" id="resetW">Reset weeks to the design file</button></div>
-  <div class="res"><div id="cardtbl"></div></div>
-  <div class="note"><b>How it works.</b> Each batch's maximum possible Miles comes from its length: weeks × (2 mandatory live + 3 optional live + 4 practice items) + the evaluations. The target maximum is
-  <i>target% × fee ÷ (cost conversion × engagement × ₹ per Mile)</i>. The multiplier <b>k</b> is target ÷ standard maximum, and every rate in that batch is the standard rate × k, rounded to 5.
-  Type a multiplier to lock it for a batch (a <b>manual</b> tag appears); weeks come from <code>batch_design.csv</code> and are editable. Yellow = changed from the default.</div>
-</div>
+</main>
 
 <script>
 const DATA = __DATA__;
 /*PURE_START*/
+const BASE = ["ml", "mr", "nl", "nr", "p", "ga", "ge", "me"];
+const DEF_PAT = { mand: 2, opt: 2, buf: 1, pracItems: 2, evalItems: 10 };
+const PRICE_CAP = 5, LV_LO = 0.3, LV_HI = 6;
+function rstep(x, step) { return Math.max(step, Math.floor(x / step + 0.5) * step); }
 function gcd(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
-function milesOf(row, R, boost) {
-  return Math.floor((row[0] * R.ml + row[1] * R.mr + row[2] * R.nl + row[3] * R.nr + row[4] * R.p + row[5] * R.ga + row[6] * R.ge + row[7] * R.me) * boost);
+function designCeil(W, R, P) { return W * (P.mand * R.ml + (P.opt + P.buf) * R.nl + P.mand * P.pracItems * R.p) + P.evalItems * R.ge; }
+function milesOf(row, R, boost, W, P, caps) {
+  let [ml, mr, nl, nr, p, ga, ge, me] = row;
+  if (caps) {
+    const cm = P.mand * W, co = (P.opt + P.buf) * W;
+    let l = Math.min(ml, cm); mr = Math.min(mr, cm - l); ml = l;
+    l = Math.min(nl, co); nr = Math.min(nr, co - l); nl = l;
+    p = Math.min(p, P.mand * P.pracItems * W); ge = Math.min(ge, P.evalItems);
+  }
+  return Math.floor((ml * R.ml + mr * R.mr + nl * R.nl + nr * R.nr + p * R.p + ga * R.ga + ge * R.ge + me * R.me) * boost);
+}
+function priceOf(rw, M, level, step) { return rstep(Math.min((rw.pct / 100) * (rw.pinned ? 1 : level), PRICE_CAP) * M, step); }
+function itemsFor(rewards, M, level, step) { return rewards.filter((r) => r.on && r.cost > 0).map((r) => ({ name: r.name, cost: r.cost, rep: r.rep, miles: priceOf(r, M, level, step) })); }
+function expHigh(shares, items, M) {
+  const its = items.slice().sort((a, b) => a.miles - b.miles), miles = its.map((i) => i.miles), pref = [];
+  let best = 0; its.forEach((i) => { best = Math.max(best, i.cost); pref.push(best); });
+  let tot = 0;
+  for (const sh of shares) {
+    const x = sh * M; let lo = 0, hi = miles.length;
+    while (lo < hi) { const m = (lo + hi) >> 1; if (miles[m] <= x) lo = m + 1; else hi = m; }
+    if (lo) tot += pref[lo - 1];
+  }
+  return tot / shares.length;
+}
+function fitLevel(fee, M, shares, rewards, target, step) {
+  const want = (target / 100) * fee, f = (d) => expHigh(shares, itemsFor(rewards, M, d, step), M);
+  let lo = LV_LO, hi = LV_HI;
+  if (!shares.length || fee <= 0) return 1;
+  if (f(lo) <= want) return lo;
+  if (f(hi) >= want) return hi;
+  for (let i = 0; i < 26; i++) { const mid = (lo + hi) / 2; if (f(mid) > want) lo = mid; else hi = mid; }
+  return Math.round(((lo + hi) / 2) * 1000) / 1000;
 }
 function bestTable(items, cap, maxUnits, unit) {
   const best = new Array(maxUnits + 1).fill(0), used = new Array(maxUnits + 1).fill(0);
@@ -165,285 +177,185 @@ function bestTable(items, cap, maxUnits, unit) {
   }
   return { best, used };
 }
-const BASE = ["ml", "mr", "nl", "nr", "p", "ga", "ge", "me"];
-const DEF_PAT = { mand: 2, opt: 2, buf: 1, pracItems: 2, evalItems: 10 };
-function r5(x) { return Math.max(5, Math.round(x / 5) * 5); }
-function designCeil(W, R, P) { return W * (P.mand * R.ml + (P.opt + P.buf) * R.nl + P.mand * P.pracItems * R.p) + P.evalItems * R.ge; }
-function batchPlan(S, D) {
-  const C = S.card || { enabled: false, caps: false, pat: DEF_PAT, batches: {} };
-  return D.batches.map((b) => {
-    const ov = (C.batches && C.batches[b.name]) || {};
-    const W = Math.max(1, +ov.weeks || ((D.design || {})[b.name] || {}).weeks || 26);
-    const fee = S.fee[b.name] || 0, std = designCeil(W, S.rates, C.pat);
-    const target = C.enabled && fee > 0 && std > 0 ? (C.target / 100) * fee * S.mpr / (C.rho * C.e) : 0;
-    let k = 1, manual = false;
-    if (C.enabled) { if (ov.k > 0) { k = +ov.k; manual = true; } else if (target > 0) k = target / std; }
-    const rates = {}; BASE.forEach((a) => { rates[a] = C.enabled ? r5(S.rates[a] * k) : S.rates[a]; });
-    return { name: b.name, W, fee, std, target, k, manual, rates, cardMax: designCeil(W, rates, C.pat), caps: !!C.caps, pat: C.pat };
-  });
-}
-function milesOfCard(row, Rb, boost, W, P, caps) {
-  let [ml, mr, nl, nr, p, ga, ge, me] = row;
-  if (caps) {
-    const cm = P.mand * W, co = (P.opt + P.buf) * W;
-    let l = Math.min(ml, cm); mr = Math.min(mr, cm - l); ml = l;
-    l = Math.min(nl, co); nr = Math.min(nr, co - l); nl = l;
-    p = Math.min(p, P.mand * P.pracItems * W); ge = Math.min(ge, P.evalItems);
-  }
-  return Math.floor((ml * Rb.ml + mr * Rb.mr + nl * Rb.nl + nr * Rb.nr + p * Rb.p + ga * Rb.ga + ge * Rb.ge + me * Rb.me) * boost);
+function planFor(S, D, b) {
+  const ov = S.batches[b.name] || {};
+  const W = Math.max(1, +ov.weeks || ((D.design || {})[b.name] || {}).weeks || 26);
+  const M = +ov.max > 0 ? rstep(+ov.max, S.step) : rstep(designCeil(W, S.rates, S.pat), S.step);
+  const fee = S.fee[b.name] || 0;
+  let level = 1, manual = false;
+  if (+ov.level > 0) { level = +ov.level; manual = true; } else if (S.fit) level = fitLevel(fee, M, D.shares || [], S.rewards, S.target, S.step);
+  return { W, M, fee, level, manual, items: itemsFor(S.rewards, M, level, S.step) };
 }
 function computeAll(S, D) {
-  const R = S.rates, items = S.rewards.filter((r) => r.on && r.cost > 0 && r.miles > 0);
-  let unit = 0; items.forEach((r) => { unit = gcd(unit, Math.round(r.miles)); });
-  unit = Math.max(unit, 50);
-  const plan = batchPlan(S, D);
-  const perBatch = D.batches.map((b, i) => b.rows.map((row) => milesOfCard(row, plan[i].rates, S.boost, plan[i].W, plan[i].pat, plan[i].caps)));
-  const top = Math.max(0, ...perBatch.map((a) => Math.max(0, ...a)));
-  const T0 = bestTable(items, S.cap, Math.floor(top / unit), unit), table = T0.best, tUsed = T0.used;
-  const out = D.batches.map((b, i) => {
+  const out = D.batches.map((b) => {
+    const p = planFor(S, D, b);
+    const ms = b.rows.map((row) => milesOf(row, S.rates, S.boost, p.W, S.pat, S.caps));
+    let unit = 0; p.items.forEach((r) => { unit = gcd(unit, r.miles); }); unit = Math.max(unit, 50);
+    const top = Math.max(0, ...ms), T0 = bestTable(p.items, S.cap, Math.floor(top / unit), unit);
     let low = 0, high = 0, worst = 0, elig = 0, tot = 0, lowM = 0, highM = 0, worstM = 0;
-    for (const m of perBatch[i]) {
-      tot += m;
-      let lo = null, hi = null;
-      for (const it of items) if (it.miles <= m) {
+    for (const m of ms) {
+      tot += m; let lo = null, hi = null;
+      for (const it of p.items) if (it.miles <= m) {
         if (!lo || it.cost < lo.cost || (it.cost === lo.cost && it.miles < lo.miles)) lo = it;
         if (!hi || it.cost > hi.cost || (it.cost === hi.cost && it.miles > hi.miles)) hi = it;
       }
-      if (hi) { elig++; low += lo.cost; lowM += lo.miles; high += hi.cost; highM += hi.miles; const u = Math.floor(m / unit); worst += table[u]; worstM += tUsed[u]; }
+      if (hi) { elig++; low += lo.cost; lowM += lo.miles; high += hi.cost; highM += hi.miles; const u = Math.floor(m / unit); worst += T0.best[u]; worstM += T0.used[u]; }
     }
-    const n = b.rows.length, s = S.share / 100, fee = S.fee[b.name] ?? 0, revenue = fee * n;
-    return { name: b.name, n, elig, avg: n ? Math.round(tot / n) : 0, totalMiles: tot, fee, revenue,
-             low: low * s, high: high * s, worst: worst * s, lowM: lowM * s, highM: highM * s, worstM: worstM * s,
-             plan: plan[i], maxSeen: Math.max(0, ...perBatch[i]) };
+    const n = b.rows.length, s = S.share / 100, revenue = p.fee * n;
+    return { name: b.name, n, elig, avg: n ? Math.round(tot / n) : 0, totalMiles: tot, fee: p.fee, revenue, plan: p,
+             low: low * s, high: high * s, worst: worst * s, lowM: lowM * s, highM: highM * s, worstM: worstM * s, top };
   });
   const T = out.reduce((a, r) => ({ n: a.n + r.n, elig: a.elig + r.elig, totalMiles: a.totalMiles + r.totalMiles, revenue: a.revenue + r.revenue,
-    low: a.low + r.low, high: a.high + r.high, worst: a.worst + r.worst, lowM: a.lowM + r.lowM, highM: a.highM + r.highM, worstM: a.worstM + r.worstM }), { n: 0, elig: 0, totalMiles: 0, revenue: 0, low: 0, high: 0, worst: 0, lowM: 0, highM: 0, worstM: 0 });
+    low: a.low + r.low, high: a.high + r.high, worst: a.worst + r.worst, lowM: a.lowM + r.lowM, highM: a.highM + r.highM, worstM: a.worstM + r.worstM }),
+    { n: 0, elig: 0, totalMiles: 0, revenue: 0, low: 0, high: 0, worst: 0, lowM: 0, highM: 0, worstM: 0 });
   T.avg = T.n ? Math.round(T.totalMiles / T.n) : 0;
   return { rows: out, total: T };
 }
 /*PURE_END*/
 
 const LABELS = { ml: "Mandatory lecture, live", mr: "Mandatory lecture, recording", nl: "Other lecture, live", nr: "Other lecture, recording",
-  p: "Practice assignment", ga: "Graded assignment", ge: "Graded evaluation", me: "Mock evaluation" };
-const CAL = DATA.calib || { e: 0.263, rho: 0.858 };
-const baseState = () => ({ rates: { ...DATA.rates }, boost: 1, share: 100, cap: 3, auto: true, mpr: 10, rnd: 100,
-  rewards: DATA.rewards.map((r) => ({ ...r, manual: false })), fee: { ...DATA.revenue },
-  card: { enabled: DATA.cardDefault !== false, target: 1.25, e: CAL.e, rho: CAL.rho, caps: true, pat: { ...DEF_PAT }, batches: {} } });
-const fresh = () => { const f = baseState(); if (DATA.config) applyConfig(f, DATA.config); applyAuto(f); return f; };
-function applyAuto(St) { if (!St.auto) return; St.rewards.forEach((r) => { if (!r.manual && r.cost > 0) r.miles = Math.max(St.rnd, Math.round((r.cost * St.mpr) / St.rnd) * St.rnd); }); }
-let S = fresh(), UNIT = "L", FILTER = "";
-const collapsed = {};
+  p: "Practice item", ga: "Graded assignment", ge: "Graded evaluation", me: "Mock evaluation" };
 const $ = (id) => document.getElementById(id);
 const IN = (v) => Math.round(v).toLocaleString("en-IN");
+let UNIT = "L", FILTER = "", REF = "";
 const money = (v) => (UNIT === "L" ? "₹" + (v / 1e5).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " L" : "₹" + IN(v));
-const miles = (v) => (UNIT === "L" ? (v / 1e5).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " L" : IN(v));
-const cls = (p) => (p < 10 ? "p1" : p < 25 ? "p2" : "p3");
+const base = () => ({ rates: { ...DATA.rates }, boost: 1, share: 100, cap: 3, step: DATA.step || 50, target: DATA.target || 1.25, fit: true, caps: true, pat: { ...DEF_PAT },
+  rewards: DATA.rewards.map((r) => ({ ...r })), fee: { ...DATA.revenue }, batches: {} });
+const fresh = () => { const f = base(); if (DATA.config) applyConfig(f, DATA.config); return f; };
+let S = fresh();
+const collapsed = { "Core rewards": false };
 
 /* ---------- save / load ---------- */
-const CONFIG_VERSION = 1;
 function exportConfig() {
   const C = computeAll(S, DATA), T = C.total;
   return {
-    app: "miles-cost-playground", version: CONFIG_VERSION, savedAt: new Date().toISOString(),
-    settings: { milesPerActivity: { ...S.rates }, streakBoost: S.boost, shareWhoRedeem: S.share, repeatCap: S.cap,
-      autoPriceMilesFromCost: S.auto, milesPerRupee: S.mpr, roundMilesTo: S.rnd },
-    rewards: S.rewards.map((r) => ({ name: r.name, group: r.group, miles: r.miles, cost: r.cost, repeatable: !!r.rep, on: !!r.on, manualMiles: !!r.manual, costConfirmed: !r.tbd })),
-    batchRateCards: { enabled: S.card.enabled, targetPct: S.card.target, engagement: S.card.e, costConversion: S.card.rho, capsOn: S.card.caps,
-      pattern: { ...S.card.pat },
-      batches: Object.fromEntries(batchPlan(S, DATA).map((p) => [p.name, { weeks: p.W, ...(p.manual ? { multiplier: +p.k.toFixed(4) } : {}) }])) },
+    app: "miles-cost-playground", version: 2, savedAt: new Date().toISOString(),
+    settings: { milesPerActivity: { ...S.rates }, streakBoost: S.boost, shareWhoRedeem: S.share, repeatCap: S.cap, roundMilesTo: S.step, targetCostPctOfRevenue: S.target,
+      fitPriceLevelToFee: S.fit, capsOn: S.caps, pattern: { ...S.pat }, milesPerRupee: 10 },
+    rewards: S.rewards.map((r) => ({ name: r.name, group: r.group, cost: r.cost, pctOfMax: r.pct, fixedPct: !!r.pinned, repeatable: !!r.rep, on: !!r.on, costConfirmed: !r.tbd })),
+    batches: Object.fromEntries(C.rows.map((r) => [r.name, { weeks: r.plan.W, ...((S.batches[r.name] || {}).max > 0 ? { maxMiles: r.plan.M } : {}), ...(r.plan.manual ? { priceLevel: +r.plan.level.toFixed(3) } : {}) }])),
     feePerStudent: { ...S.fee },
     dataset: { batches: DATA.batches.map((b) => ({ name: b.name, students: b.rows.length })) },
-    resultsSnapshot: { note: "informational only, recomputed on load",
-      totalStudents: T.n, revenue: Math.round(T.revenue),
+    resultsSnapshot: { note: "informational only, recomputed on load", totalStudents: T.n, revenue: Math.round(T.revenue),
       low: Math.round(T.low), high: Math.round(T.high), worstCase: Math.round(T.worst),
-      lowMiles: Math.round(T.lowM), highMiles: Math.round(T.highM), worstMiles: Math.round(T.worstM),
-      perBatch: C.rows.map((r) => ({ batch: r.name, students: r.n, multiplier: +r.plan.k.toFixed(3), revenue: Math.round(r.revenue), low: Math.round(r.low), high: Math.round(r.high), worstCase: Math.round(r.worst) })) },
+      perBatch: C.rows.map((r) => ({ batch: r.name, students: r.n, maxMiles: r.plan.M, priceLevel: +r.plan.level.toFixed(3), revenue: Math.round(r.revenue), high: Math.round(r.high), highPctOfRevenue: r.revenue ? +(100 * r.high / r.revenue).toFixed(2) : null })) },
   };
 }
-function applyConfig(St, cfg, opts) {
+function applyConfig(St, cfg) {
   if (!cfg || cfg.app !== "miles-cost-playground" || !cfg.settings) throw new Error("This does not look like a playground config file.");
   const c = cfg.settings, num = (v, d) => (Number.isFinite(+v) ? +v : d);
   Object.keys(St.rates).forEach((k) => { if (c.milesPerActivity && k in c.milesPerActivity) St.rates[k] = num(c.milesPerActivity[k], St.rates[k]); });
   St.boost = Math.max(1, num(c.streakBoost, 1)); St.share = Math.min(100, Math.max(1, num(c.shareWhoRedeem, 100))); St.cap = num(c.repeatCap, 3);
-  St.auto = c.autoPriceMilesFromCost !== false; St.mpr = Math.max(0.1, num(c.milesPerRupee, 10)); St.rnd = num(c.roundMilesTo, 100);
+  if (c.roundMilesTo && cfg.version >= 2) St.step = [50, 100, 250, 500].includes(+c.roundMilesTo) ? +c.roundMilesTo : 50;
+  St.target = num(c.targetCostPctOfRevenue, St.target); if (c.fitPriceLevelToFee !== undefined) St.fit = !!c.fitPriceLevelToFee; if (c.capsOn !== undefined) St.caps = !!c.capsOn;
+  if (c.pattern) Object.keys(St.pat).forEach((k) => { if (k in c.pattern) St.pat[k] = num(c.pattern[k], St.pat[k]); });
   const saved = new Map((cfg.rewards || []).map((r) => [r.name, r]));
-  St.rewards.forEach((r) => { const q = saved.get(r.name); if (!q) return;
-    r.miles = num(q.miles, r.miles); r.cost = num(q.cost, r.cost); r.rep = !!q.repeatable; r.on = q.on !== false; r.manual = !!q.manualMiles; if (q.costConfirmed) r.tbd = false; saved.delete(r.name); });
-  saved.forEach((q) => St.rewards.push({ name: q.name, group: q.group || "Custom", miles: num(q.miles, 0), cost: num(q.cost, 0), tbd: q.costConfirmed === false,
-    rep: !!q.repeatable, on: q.on !== false, manual: !!q.manualMiles }));
-  const bc = cfg.batchRateCards;
-  if (bc) {
-    const C = St.card; C.enabled = !!bc.enabled; C.target = num(bc.targetPct, C.target); C.e = num(bc.engagement, C.e); C.rho = num(bc.costConversion, C.rho); C.caps = bc.capsOn !== false;
-    if (bc.pattern) Object.keys(C.pat).forEach((k) => { if (k in bc.pattern) C.pat[k] = num(bc.pattern[k], C.pat[k]); });
-    C.batches = {};
-    Object.keys(bc.batches || {}).forEach((b) => { const q = bc.batches[b]; C.batches[b] = { weeks: num(q.weeks, 0) || undefined, k: q.multiplier > 0 ? +q.multiplier : undefined }; });
-  } else if (opts && opts.legacyOff) { St.card.enabled = false; St.card.caps = false; }
+  St.rewards.forEach((r) => { const q = saved.get(r.name); if (!q) return; r.cost = num(q.cost, r.cost); r.rep = !!q.repeatable; r.on = q.on !== false;
+    if (q.pctOfMax !== undefined) { r.pct = num(q.pctOfMax, r.pct); r.pinned = !!q.fixedPct; } if (q.costConfirmed) r.tbd = false; saved.delete(r.name); });
+  saved.forEach((q) => St.rewards.push({ name: q.name, group: q.group || "Other", cost: num(q.cost, 0), pct: num(q.pctOfMax, 50), pinned: !!q.fixedPct, rep: !!q.repeatable, on: q.on !== false, tbd: q.costConfirmed === false }));
+  St.batches = {};
+  Object.keys(cfg.batches || {}).forEach((b) => { const q = cfg.batches[b]; St.batches[b] = { weeks: num(q.weeks, 0) || undefined, max: q.maxMiles > 0 ? +q.maxMiles : undefined, level: q.priceLevel > 0 ? +q.priceLevel : undefined }; });
   if (cfg.feePerStudent) Object.keys(cfg.feePerStudent).forEach((b) => { St.fee[b] = num(cfg.feePerStudent[b], St.fee[b] || 0); });
   return St;
 }
 function toast(msg, ms) { const t = $("toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => (t.style.display = "none"), ms || 3500); }
-const LS = "miles-playground-session";
+const LS = "miles-playground-session-v2";
 function autosave() { try { localStorage.setItem(LS, JSON.stringify(exportConfig())); } catch (e) {} }
-function datasetNote(cfg) {
-  const have = new Set(DATA.batches.map((b) => b.name)), saved = ((cfg.dataset || {}).batches || []).map((b) => b.name);
-  const missing = saved.filter((n) => !have.has(n)); return missing.length ? ` ${missing.length} batch(es) in the file are not in this build and were ignored.` : "";
-}
-function drawAll() { drawRates(); drawRewards(); drawCards(); render(); }
 
-function drawRates() {
+/* ---------- drawing ---------- */
+function drawSettings() {
+  $("target").value = S.target; $("share").value = S.share; $("shareV").textContent = S.share + "%"; $("cap").value = String(S.cap);
+  $("step").value = String(S.step); $("fit").checked = S.fit; $("boost").value = S.boost; $("caps").checked = S.caps;
+  document.querySelectorAll("[data-pat]").forEach((el) => (el.value = S.pat[el.dataset.pat]));
   $("rates").innerHTML = Object.keys(LABELS).map((k) => `<label class="f">${LABELS[k]}<input type="number" data-r="${k}" value="${S.rates[k]}" step="50" min="0" class="${S.rates[k] !== DATA.rates[k] ? "chg" : ""}"></label>`).join("");
-  $("boost").value = S.boost; $("boost").className = S.boost !== 1 ? "chg" : "";
-  $("share").value = S.share; $("shareV").textContent = S.share + "%"; $("cap").value = String(S.cap);
-  $("auto").checked = S.auto; $("mpr").value = S.mpr; $("rnd").value = String(S.rnd); autoNote();
 }
-function autoNote() {
-  $("autonote").innerHTML = S.auto ? `Every reward with a cost is priced at <b>cost × ${S.mpr} Miles</b> (₹1,500 → <b>${IN(Math.round(1500 * S.mpr / S.rnd) * S.rnd)}</b> Miles). Change a cost and its Miles follow. Type a Miles value yourself to lock that reward as <b>manual</b>. Rewards with cost 0 stay manual.`
-    : "Auto-pricing is off: Miles are whatever you type.";
+function drawBatches(C) {
+  const pc = (v, rev) => (rev ? (100 * v) / rev : null);
+  const pill = (p) => (p === null ? "–" : `<span class="pill ${p >= 1 && p <= 1.5 ? "ok" : p < 1 ? "lo" : "hi"}">${p.toFixed(2)}%</span>`);
+  const T = C.total;
+  $("tbl").innerHTML = `<table><thead><tr><th>Batch</th><th>Students</th><th>Fee ₹</th><th>Weeks</th><th>Max Miles</th><th>Price level</th><th>Can claim</th><th>Avg Miles</th><th>Low</th><th>High</th><th>High % of revenue</th><th>Worst case</th><th>Worst % of revenue</th></tr></thead><tbody>` +
+    C.rows.map((r, i) => { const p = r.plan, ov = S.batches[r.name] || {}, d = (DATA.design || {})[r.name] || {};
+      return `<tr><td>${r.name}${d.status === "ongoing" ? ' <span class="tag">ongoing</span>' : ""}</td><td>${IN(r.n)}</td>
+        <td><input type="number" data-fee="${i}" value="${p.fee}" step="500" min="0"></td>
+        <td><input type="number" data-w="${i}" value="${p.W}" step="1" min="1" class="${p.W !== d.weeks ? "chg" : ""}"></td>
+        <td><input type="number" data-m="${i}" value="${p.M}" step="${S.step}" min="${S.step}" class="${ov.max > 0 ? "chg" : ""}"></td>
+        <td><input type="number" data-l="${i}" value="${+p.level.toFixed(2)}" step="0.05" min="0.3" class="${p.manual ? "chg" : ""}"> ${p.manual ? '<span class="tag m" data-unl="' + i + '">manual ✕</span>' : S.fit ? '<span class="tag a">auto</span>' : ""}</td>
+        <td>${r.n ? Math.round((100 * r.elig) / r.n) : 0}%</td><td>${IN(r.avg)}</td><td>${money(r.low)}</td><td>${money(r.high)}</td><td>${pill(pc(r.high, r.revenue))}</td><td>${money(r.worst)}</td><td>${pill(pc(r.worst, r.revenue))}</td></tr>`; }).join("") +
+    `<tr class="tot"><td>All batches</td><td>${IN(T.n)}</td><td></td><td></td><td></td><td></td><td>${T.n ? Math.round((100 * T.elig) / T.n) : 0}%</td><td>${IN(T.avg)}</td><td>${money(T.low)}</td><td>${money(T.high)}</td><td>${pill(pc(T.high, T.revenue))}</td><td>${money(T.worst)}</td><td>${pill(pc(T.worst, T.revenue))}</td></tr></tbody></table>`;
 }
-function modeTag(r) {
-  if (!S.auto) return "";
-  if (r.manual) return `<a class="tag m" data-unlock="${S.rewards.indexOf(r)}" title="Click to re-apply auto pricing">manual ✕</a>`;
-  return r.cost > 0 ? '<span class="tag a">auto</span>' : '<span class="tag m0">manual</span>';
+function drawRewards(C) {
+  const rp = C.rows.find((r) => r.name === REF) || C.rows[0], M = rp ? rp.plan.M : 35500, lv = rp ? rp.plan.level : 1;
+  const groups = []; S.rewards.forEach((r, i) => { if (FILTER && !r.name.toLowerCase().includes(FILTER)) return; let g = groups.find((x) => x.name === r.group); if (!g) groups.push((g = { name: r.group, items: [] })); g.items.push({ r, i }); });
+  $("rwroot").innerHTML = groups.map((g) => { const on = g.items.filter((x) => x.r.on).length, cl = collapsed[g.name] !== false && !FILTER;
+    return `<div class="gh" data-g="${g.name}"><span>${cl ? "▸" : "▾"}</span><span>${g.name}</span><span class="c">${on} of ${g.items.length} on</span><span class="sp"></span></div>` +
+      (cl ? "" : `<table><thead><tr><th style="width:34px">On</th><th>Reward</th><th>Cost to Masai ₹</th><th>% of max Miles</th><th>Fixed %</th><th>Miles in ${rp ? rp.name : "batch"}</th><th>Repeat</th></tr></thead><tbody>` +
+        g.items.sort((a, b) => a.r.pct - b.r.pct).map(({ r, i }) => { const m = priceOf(r, M, lv, S.step), out = m > M, d = DATA.rewards.find((x) => x.name === r.name);
+          return `<tr style="${r.on ? "" : "opacity:.45"}"><td><input type="checkbox" class="tg" data-on="${i}" ${r.on ? "checked" : ""}></td><td class="n">${r.name}${r.tbd ? ' <span class="tag">cost to confirm</span>' : ""}</td>
+            <td><input type="number" data-cost="${i}" value="${r.cost}" step="100" min="0" class="${d && d.cost !== r.cost ? "chg" : ""}"></td>
+            <td><input type="number" data-pct="${i}" value="${r.pct}" step="1" min="1" max="500" class="${d && d.pct !== r.pct ? "chg" : ""}"> %</td>
+            <td style="text-align:center"><input type="checkbox" class="tg" data-pin="${i}" ${r.pinned ? "checked" : ""}></td>
+            <td class="${out ? "out" : ""}">${out ? IN(m) + " (out of reach)" : IN(m)}</td>
+            <td style="text-align:center"><input type="checkbox" class="tg" data-rep="${i}" ${r.rep ? "checked" : ""}></td></tr>`; }).join("") + "</tbody></table>"); }).join("") || '<p class="note">No reward matches.</p>';
 }
-function effCell(r) {
-  if (!r.miles) return "–";
-  const e = (r.cost / r.miles) * 1000;
-  return `<span class="eff ${e > 500 ? "hot" : ""}">₹${IN(e)}</span>`;
-}
-function drawRewards() {
-  const groups = [];
-  S.rewards.forEach((r, i) => {
-    if (FILTER && !r.name.toLowerCase().includes(FILTER)) return;
-    let g = groups.find((x) => x.name === r.group); if (!g) groups.push((g = { name: r.group, items: [] }));
-    g.items.push({ r, i });
-  });
-  $("rwroot").innerHTML = groups.map((g) => {
-    const on = g.items.filter((x) => x.r.on).length, cl = collapsed[g.name] && !FILTER;
-    return `<div class="gh ${cl ? "cl" : ""}" data-g="${g.name}"><span class="car">▾</span><span>${g.name}</span><span class="c">${on} of ${g.items.length} on</span><span class="sp"></span>
-      <label class="row" style="gap:6px;font-weight:500" onclick="event.stopPropagation()"><input type="checkbox" class="tg" data-gall="${g.name}" ${on === g.items.length ? "checked" : ""}> all on</label></div>` +
-      (cl ? "" : `<table class="rwt"><thead><tr><th style="width:36px">On</th><th>Reward</th><th>Miles needed</th><th>Cost to Masai ₹</th><th>₹ per 1,000 Miles</th><th>Repeat</th><th></th></tr></thead><tbody>` +
-      g.items.map(({ r, i }) => {
-        const d = DATA.rewards[i];
-        return `<tr class="${r.on ? "" : "off"}" id="rw${i}"><td><input type="checkbox" class="tg" data-k="on" data-i="${i}" ${r.on ? "checked" : ""}></td>
-          <td class="n">${r.group === "Custom" ? `<input type="text" data-k="name" data-i="${i}" value="${r.name}" style="width:100%;padding:6px 8px;border:1px solid #e6e8ee;border-radius:7px;font:600 14px inherit">` : r.name}${r.tbd ? ' <span class="tbd">? cost TBD</span>' : ""}</td>
-          <td><span class="step"><button data-st="-500" data-k="miles" data-i="${i}">−</button><input type="number" data-k="miles" data-i="${i}" value="${r.miles}" step="500" min="0" class="${d && r.miles !== d.miles ? "chg" : ""}"><button data-st="500" data-k="miles" data-i="${i}">+</button></span> <span class="mt" id="mt${i}">${modeTag(r)}</span></td>
-          <td><span class="step"><button data-st="-100" data-k="cost" data-i="${i}">−</button><input type="number" data-k="cost" data-i="${i}" value="${r.cost}" step="100" min="0" class="${d && r.cost !== d.cost ? "chg" : ""}"><button data-st="100" data-k="cost" data-i="${i}">+</button></span></td>
-          <td class="eff-c" id="eff${i}">${effCell(r)}</td>
-          <td style="text-align:center"><input type="checkbox" class="tg" data-k="rep" data-i="${i}" ${r.rep ? "checked" : ""}></td>
-          <td>${r.group === "Custom" ? `<button class="x" data-del="${i}" title="Remove">✕</button>` : ""}</td></tr>`;
-      }).join("") + `</tbody></table>`);
-  }).join("") || '<p class="note">No reward matches.</p>';
-}
-function drawCards() {
-  const c = S.card;
-  $("c_enabled").checked = c.enabled; $("c_target").value = c.target; $("c_e").value = c.e; $("c_rho").value = c.rho; $("c_caps").checked = c.caps;
-  document.querySelectorAll("[data-pat]").forEach((el) => (el.value = c.pat[el.dataset.pat]));
-  const sorted = D_ORDER();
-  $("cardtbl").innerHTML = `<table class="ct"><thead><tr><th>Batch</th><th>Students</th><th>Fee ₹</th><th>Weeks</th><th>Standard max Miles</th><th>Target max Miles</th><th>Multiplier ×</th><th>High % of revenue</th><th>Max Miles with card</th><th>Highest student</th>
-    <th>Live mandatory</th><th>Recorded mandatory</th><th>Live optional</th><th>Recorded optional</th><th>Practice</th></tr></thead><tbody>` +
-    sorted.map((i) => `<tr id="ctr${i}"><td>${DATA.batches[i].name}${(DATA.design[DATA.batches[i].name] || {}).status === "ongoing" ? ' <span class="tag m0">ongoing</span>' : ""}</td><td>${IN(DATA.batches[i].rows.length)}</td>
-      <td id="cf${i}"></td><td><input type="number" data-cw="${i}" min="1" step="1"></td><td id="cs${i}"></td><td id="ct${i}"></td>
-      <td><input type="number" data-ck="${i}" min="0.05" step="0.05"> <span id="cm${i}"></span></td><td id="cp${i}"></td><td id="cx${i}"></td><td id="cy${i}"></td>
-      <td class="rt" id="r_ml${i}"></td><td class="rt" id="r_mr${i}"></td><td class="rt" id="r_nl${i}"></td><td class="rt" id="r_nr${i}"></td><td class="rt" id="r_p${i}"></td></tr>`).join("") + "</tbody></table>";
-}
-function D_ORDER() { return DATA.batches.map((_, i) => i).sort((a, b) => DATA.batches[b].rows.length - DATA.batches[a].rows.length); }
-function paintCards(C) {
-  const c = S.card;
-  if (!$("cardtbl").firstChild) return;
-  C.rows.forEach((r, i) => {
-    const p = r.plan, d = (DATA.design || {})[r.name] || {}, set = (id, v) => { const e = $(id); if (e) e.innerHTML = v; };
-    const wi = document.querySelector(`[data-cw="${i}"]`), ki = document.querySelector(`[data-ck="${i}"]`);
-    if (wi && document.activeElement !== wi) wi.value = p.W;
-    if (wi) wi.classList.toggle("chg", p.W !== d.weeks);
-    if (ki && document.activeElement !== ki) ki.value = c.enabled ? +p.k.toFixed(2) : "";
-    if (ki) { ki.disabled = !c.enabled; ki.classList.toggle("chg", p.manual); }
-    set("cf" + i, IN(p.fee)); set("cs" + i, IN(p.std)); set("ct" + i, c.enabled ? IN(p.target) : "–");
-    set("cm" + i, p.manual ? '<span class="tag m">manual</span>' : c.enabled ? '<span class="tag a">auto</span>' : "");
-    ["ml", "mr", "nl", "nr", "p"].forEach((a) => set(`r_${a}${i}`, p.rates[a]));
-    set("cx" + i, IN(p.cardMax)); set("cy" + i, IN(r.maxSeen));
-    const pct = r.revenue ? (100 * r.high) / r.revenue : 0;
-    set("cp" + i, r.revenue ? `<b class="${pct >= 1 && pct <= 1.5 ? "p1" : pct < 1 ? "p2" : "p3"}">${pct.toFixed(2)}%</b>` : "–");
-    const tr = $("ctr" + i); if (tr) tr.classList.toggle("dis", !c.enabled);
-  });
+function drawRef(C) {
+  const cur = C.rows.some((r) => r.name === REF) ? REF : (C.rows[0] || {}).name;
+  $("ref").innerHTML = C.rows.map((r) => `<option value="${r.name}" ${r.name === cur ? "selected" : ""}>${r.name} · max ${IN(r.plan.M)}</option>`).join(""); REF = cur;
 }
 function render() {
-  const C = computeAll(S, DATA), T = C.total;
-  const pc = (v, rev) => (rev ? (100 * v) / rev : 0);
-  const kp = (t, v, m, hi) => `<div class="kpi ${hi ? "hi" : ""}"><small>${t}</small><b>${money(v)}</b><div class="mm">${miles(m)} Miles redeemed <i>(${T.totalMiles ? (100 * m / T.totalMiles).toFixed(0) : 0}% of all earned)</i></div><span>${T.revenue ? pc(v, T.revenue).toFixed(1) + "% of revenue · " : ""}₹${IN(T.n ? v / T.n : 0)} per student</span></div>`;
+  const C = computeAll(S, DATA), T = C.total, pc = (v) => (T.revenue ? (100 * v) / T.revenue : 0);
+  const kp = (t, v, m, hi) => `<div class="kpi ${hi ? "hi" : ""}"><small>${t}</small><b>${money(v)}</b><span>${pc(v).toFixed(2)}% of revenue · ₹${IN(T.n ? v / T.n : 0)} per student · ${T.totalMiles ? (100 * m / T.totalMiles).toFixed(0) : 0}% of Miles used</span></div>`;
   $("kpis").innerHTML = kp("Low", T.low, T.lowM) + kp("High", T.high, T.highM, true) + kp("Worst case", T.worst, T.worstM);
-  const cell = (v, rev, m) => `<td class="grp">${money(v)}</td><td class="m">${miles(m)}</td><td class="pct ${cls(pc(v, rev))}">${rev ? pc(v, rev).toFixed(1) + "%" : "–"}</td>`;
-  $("tbl").innerHTML = `<table><thead><tr><th>Batch</th><th>Students</th><th>Can claim</th><th>Avg Miles</th><th>Card ×</th><th>Fee / student ₹</th><th>Revenue</th>
-      <th class="grp">Low ₹</th><th>Miles</th><th>% rev</th><th class="grp">High ₹</th><th>Miles</th><th>% rev</th><th class="grp">Worst ₹</th><th>Miles</th><th>% rev</th><th class="grp">Worst / student</th></tr></thead><tbody>` +
-    C.rows.map((r) => `<tr><td>${r.name}</td><td>${IN(r.n)}</td><td>${IN(r.elig)}</td><td>${IN(r.avg)}</td><td class="m">${S.card.enabled ? r.plan.k.toFixed(2) + "×" : "–"}</td>
-      <td><input class="fee" type="number" data-fee="${r.name}" value="${r.fee}" step="500" min="0"></td><td>${money(r.revenue)}</td>${cell(r.low, r.revenue, r.lowM)}${cell(r.high, r.revenue, r.highM)}${cell(r.worst, r.revenue, r.worstM)}<td class="grp">₹${IN(r.n ? r.worst / r.n : 0)}</td></tr>`).join("") +
-    `<tr class="tot"><td>All batches</td><td>${IN(T.n)}</td><td>${IN(T.elig)}</td><td>${IN(T.avg)}</td><td></td><td></td><td>${money(T.revenue)}</td>${cell(T.low, T.revenue, T.lowM)}${cell(T.high, T.revenue, T.highM)}${cell(T.worst, T.revenue, T.worstM)}<td class="grp">₹${IN(T.n ? T.worst / T.n : 0)}</td></tr></tbody></table>`;
-  window.__last = C;
-  paintCards(C);
-  autosave();
+  drawBatches(C); drawRef(C); drawRewards(C);
+  window.__last = C; autosave();
 }
-function refreshRow(i) {
-  const r = S.rewards[i], d = DATA.rewards[i];
-  const row = $("rw" + i); if (!row) return;
-  const mi = row.querySelector('input[data-k="miles"]'), ci = row.querySelector('input[data-k="cost"]');
-  if (document.activeElement !== mi) mi.value = r.miles;
-  mi.classList.toggle("chg", !!d && r.miles !== d.miles); ci.classList.toggle("chg", !!d && r.cost !== d.cost);
-  $("eff" + i).innerHTML = effCell(r); $("mt" + i).innerHTML = modeTag(r);
+
+/* ---------- events ---------- */
+function rerender() { // redraw after typing without losing the cursor
+  const a = document.activeElement;
+  let sel = null, pos = null;
+  if (a && a.dataset) { const k = Object.keys(a.dataset)[0]; if (k) sel = `[data-${k.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}="${a.dataset[k]}"]`; }
+  if (a && a.id) sel = "#" + a.id;
+  try { pos = a.selectionStart; } catch (e) {}
+  render();
+  if (sel) { const el = document.querySelector(sel); if (el) { el.focus(); if (pos !== null) try { el.setSelectionRange(pos, pos); } catch (e) {} } }
 }
-function setReward(i, k, v) {
-  const r = S.rewards[i]; r[k] = v;
-  if (k === "miles") r.manual = true;
-  if (k === "cost" && S.auto && !r.manual && r.cost > 0) r.miles = Math.max(S.rnd, Math.round((r.cost * S.mpr) / S.rnd) * S.rnd);
-  if (k === "miles" || k === "cost") refreshRow(i);
-}
-function refreshAllRows() { S.rewards.forEach((_, i) => refreshRow(i)); }
 document.addEventListener("input", (e) => {
-  const t = e.target;
-  if (t.dataset.r) { S.rates[t.dataset.r] = +t.value || 0; t.classList.toggle("chg", S.rates[t.dataset.r] !== DATA.rates[t.dataset.r]); }
-  else if (t.id === "boost") { S.boost = Math.max(1, +t.value || 1); t.classList.toggle("chg", S.boost !== 1); }
+  const t = e.target, n = (v, d) => (Number.isFinite(+v) && v !== "" ? +v : d), b = (k) => DATA.batches[+t.dataset[k]].name;
+  if (t.id === "target") S.target = Math.max(0.05, n(t.value, 1.25));
   else if (t.id === "share") { S.share = +t.value; $("shareV").textContent = S.share + "%"; }
   else if (t.id === "cap") S.cap = +t.value;
-  else if (t.id === "q") { FILTER = t.value.trim().toLowerCase(); drawRewards(); return; }
-  else if (t.dataset.gall) { S.rewards.forEach((r) => { if (r.group === t.dataset.gall) r.on = t.checked; }); drawRewards(); }
-  else if (t.dataset.k) {
-    const k = t.dataset.k, i = +t.dataset.i;
-    if (t.type === "checkbox") { setReward(i, k, t.checked); if (k === "on") { const tr = $("rw" + i); if (tr) tr.classList.toggle("off", !t.checked); } }
-    else if (t.type === "text") setReward(i, k, t.value);
-    else setReward(i, k, +t.value || 0);
-  } else if (t.id === "auto") { S.auto = t.checked; if (S.auto) applyAuto(S); autoNote(); refreshAllRows(); }
-  else if (t.id === "mpr") { S.mpr = Math.max(0.1, +t.value || 10); applyAuto(S); autoNote(); refreshAllRows(); }
-  else if (t.id === "rnd") { S.rnd = +t.value; applyAuto(S); autoNote(); refreshAllRows(); }
-  else if (t.dataset.fee) S.fee[t.dataset.fee] = +t.value || 0;
-  else if (t.id === "c_enabled") S.card.enabled = t.checked;
-  else if (t.id === "c_caps") S.card.caps = t.checked;
-  else if (t.id === "c_target") S.card.target = Math.max(0.05, +t.value || 1.25);
-  else if (t.id === "c_e") S.card.e = Math.min(1, Math.max(0.05, +t.value || 0.263));
-  else if (t.id === "c_rho") S.card.rho = Math.min(1.5, Math.max(0.1, +t.value || 0.858));
-  else if (t.dataset.pat) S.card.pat[t.dataset.pat] = Math.max(0, +t.value || 0);
-  else if (t.dataset.cw) { const n = DATA.batches[+t.dataset.cw].name; S.card.batches[n] = { ...(S.card.batches[n] || {}), weeks: Math.max(1, +t.value || 1) }; }
-  else if (t.dataset.ck) { const n = DATA.batches[+t.dataset.ck].name; S.card.batches[n] = { ...(S.card.batches[n] || {}), k: +t.value > 0 ? +t.value : undefined }; }
-  render();
+  else if (t.id === "step") S.step = +t.value;
+  else if (t.id === "fit") S.fit = t.checked;
+  else if (t.id === "boost") S.boost = Math.max(1, n(t.value, 1));
+  else if (t.id === "caps") S.caps = t.checked;
+  else if (t.id === "q") { FILTER = t.value.trim().toLowerCase(); rerender(); return; }
+  else if (t.id === "ref") { REF = t.value; }
+  else if (t.dataset.r) S.rates[t.dataset.r] = n(t.value, 0);
+  else if (t.dataset.pat) S.pat[t.dataset.pat] = Math.max(0, n(t.value, 0));
+  else if (t.dataset.fee !== undefined) S.fee[b("fee")] = n(t.value, 0);
+  else if (t.dataset.w !== undefined) S.batches[b("w")] = { ...(S.batches[b("w")] || {}), weeks: Math.max(1, n(t.value, 1)) };
+  else if (t.dataset.m !== undefined) S.batches[b("m")] = { ...(S.batches[b("m")] || {}), max: n(t.value, 0) || undefined };
+  else if (t.dataset.l !== undefined) S.batches[b("l")] = { ...(S.batches[b("l")] || {}), level: n(t.value, 0) || undefined };
+  else if (t.dataset.on !== undefined) S.rewards[+t.dataset.on].on = t.checked;
+  else if (t.dataset.cost !== undefined) S.rewards[+t.dataset.cost].cost = Math.max(0, n(t.value, 0));
+  else if (t.dataset.pct !== undefined) S.rewards[+t.dataset.pct].pct = Math.max(1, n(t.value, 1));
+  else if (t.dataset.pin !== undefined) S.rewards[+t.dataset.pin].pinned = t.checked;
+  else if (t.dataset.rep !== undefined) S.rewards[+t.dataset.rep].rep = t.checked;
+  else return;
+  if (t.dataset.r !== undefined) t.classList.toggle("chg", S.rates[t.dataset.r] !== DATA.rates[t.dataset.r]);
+  rerender();
 });
 document.addEventListener("click", (e) => {
-  const b = e.target.closest("button[data-st]");
-  if (b) { const i = +b.dataset.i, k = b.dataset.k, inp = document.querySelector(`input[type=number][data-k="${k}"][data-i="${i}"]`);
-    const v = Math.max(0, (S.rewards[i][k] || 0) + +b.dataset.st); inp.value = v; setReward(i, k, v); render(); return; }
-  const ul = e.target.closest("[data-unlock]"); if (ul) { S.rewards[+ul.dataset.unlock].manual = false; applyAuto(S); refreshAllRows(); render(); return; }
-  const del = e.target.closest("[data-del]"); if (del) { S.rewards.splice(+del.dataset.del, 1); drawRewards(); render(); return; }
-  const g = e.target.closest(".gh"); if (g && !e.target.closest("label")) { collapsed[g.dataset.g] = !collapsed[g.dataset.g]; drawRewards(); }
-  const u = e.target.closest("#unit button"); if (u) { UNIT = u.dataset.u; document.querySelectorAll("#unit button").forEach((x) => x.classList.toggle("on", x === u)); render(); }
+  const g = e.target.closest(".gh"); if (g) { const k = g.dataset.g; collapsed[k] = collapsed[k] === false; render(); return; }
+  const u = e.target.closest("#unit button"); if (u) { UNIT = u.dataset.u; document.querySelectorAll("#unit button").forEach((x) => x.classList.toggle("on", x === u)); render(); return; }
+  const ul = e.target.closest("[data-unl]"); if (ul) { const nm = DATA.batches[+ul.dataset.unl].name; if (S.batches[nm]) S.batches[nm].level = undefined; render(); }
 });
-$("clearK").onclick = () => { Object.keys(S.card.batches).forEach((n) => { if (S.card.batches[n]) S.card.batches[n].k = undefined; }); render(); };
-$("resetW").onclick = () => { Object.keys(S.card.batches).forEach((n) => { if (S.card.batches[n]) S.card.batches[n].weeks = undefined; }); render(); };
-$("add").onclick = () => { S.rewards.push({ name: "New reward", miles: 5000, cost: 1000, tbd: false, rep: false, group: "Custom", on: true, manual: false }); applyAuto(S); drawRewards(); render(); };
-$("allon").onclick = () => { S.rewards.forEach((r) => (r.on = true)); drawRewards(); render(); };
-$("alloff").onclick = () => { S.rewards.forEach((r) => (r.on = false)); drawRewards(); render(); };
-$("preset").onclick = () => { const i = S.rewards.findIndex((x) => x.name.startsWith("1:1 doubt")); if (i >= 0) { S.rewards[i].miles = 5000; S.rewards[i].manual = true; drawRewards(); render(); } };
+$("allon").onclick = () => { S.rewards.forEach((r) => (r.on = true)); render(); };
+$("alloff").onclick = () => { S.rewards.forEach((r) => (r.on = false)); render(); };
 $("csv").onclick = () => {
-  const C = window.__last, h = ["batch", "students", "can_claim", "avg_miles", "fee_per_student", "revenue", "low", "low_miles", "high", "high_miles", "worst", "worst_miles", "low_pct", "high_pct", "worst_pct"];
-  const p = (v, r) => (r.revenue ? (100 * v / r.revenue).toFixed(2) : "");
-  const q = (r) => [r.name, r.n, r.elig, r.avg, r.fee, r.revenue, Math.round(r.low), Math.round(r.lowM), Math.round(r.high), Math.round(r.highM), Math.round(r.worst), Math.round(r.worstM), p(r.low, r), p(r.high, r), p(r.worst, r)].join(",");
-  const csv = [h.join(","), ...C.rows.map(q), q({ ...C.total, name: "ALL", fee: "" })].join("\n");
-  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "miles_cost_per_batch.csv"; a.click();
+  const C = window.__last, h = ["batch", "students", "fee", "weeks", "max_miles", "price_level", "can_claim_pct", "avg_miles", "low", "high", "high_pct_revenue", "worst", "worst_pct_revenue"];
+  const q = (r) => [r.name, r.n, r.fee, r.plan.W, r.plan.M, +r.plan.level.toFixed(3), r.n ? Math.round(100 * r.elig / r.n) : 0, r.avg, Math.round(r.low), Math.round(r.high), r.revenue ? (100 * r.high / r.revenue).toFixed(2) : "", Math.round(r.worst), r.revenue ? (100 * r.worst / r.revenue).toFixed(2) : ""].join(",");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([[h.join(","), ...C.rows.map(q)].join("\n")], { type: "text/csv" })); a.download = "miles_cost_per_batch.csv"; a.click();
 };
 $("save").onclick = () => {
   const cfg = exportConfig(), d = new Date(), z = (n) => String(n).padStart(2, "0");
@@ -454,12 +366,13 @@ $("save").onclick = () => {
 $("load").onclick = () => $("file").click();
 $("file").onchange = async (e) => {
   const f = e.target.files[0]; if (!f) return; e.target.value = "";
-  try { const cfg = JSON.parse(await f.text()); const next = baseState(); applyConfig(next, cfg, { legacyOff: true }); applyAuto(next); S = next; drawAll(); toast("Loaded " + f.name + "." + datasetNote(cfg), 5000); }
+  try { const cfg = JSON.parse(await f.text()); const next = base(); applyConfig(next, cfg); S = next; drawSettings(); render();
+    toast("Loaded " + f.name + (cfg.version >= 2 ? "." : ". Older file: reward prices now follow the % of max ladder."), 5000); }
   catch (err) { toast("Could not load: " + err.message, 6000); }
 };
-$("reset").onclick = () => { S = fresh(); FILTER = ""; $("q").value = ""; try { localStorage.removeItem(LS); } catch (e) {} drawAll(); toast("Reset to " + (DATA.config ? "the built-in config" : "defaults")); };
-try { const raw = localStorage.getItem(LS); if (raw) { const cfg = JSON.parse(raw), next = baseState(); applyConfig(next, cfg, { legacyOff: true }); S = next; toast("Restored your last session. “Reset all” clears it.", 4500); } } catch (e) {}
-drawRates(); drawRewards(); drawCards(); render();
+$("reset").onclick = () => { S = fresh(); FILTER = ""; $("q").value = ""; try { localStorage.removeItem(LS); } catch (e) {} drawSettings(); render(); toast("Reset to " + (DATA.config ? "the built-in config" : "defaults")); };
+try { const raw = localStorage.getItem(LS); if (raw) { const next = base(); applyConfig(next, JSON.parse(raw)); S = next; toast("Restored your last session. “Reset all” clears it.", 4500); } } catch (e) {}
+drawSettings(); render();
 </script>
 </body>
 </html>
