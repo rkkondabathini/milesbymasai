@@ -16,6 +16,7 @@ import payout_sim as ps
 ROOT = ps.ROOT
 ap = argparse.ArgumentParser()
 ap.add_argument("--source", nargs="+", required=True)
+ap.add_argument("--no-card", action="store_true", help="start with batch rate cards switched off")
 ap.add_argument("--config", help="a config JSON saved from the playground; it becomes the starting point of the built file")
 a = ap.parse_args()
 
@@ -43,7 +44,16 @@ rewards = ([dict(name=n, miles=m, cost=(c or 0), tbd=c is None, rep=n in ps.REPE
            + [dict(name=n, miles=m, cost=(c or 0), tbd=False, rep=n in ps.REPEATABLE, group=sug_group(i), on=True)
               for i, (n, m, c) in enumerate(ps.SUGGESTED)])
 cfg = json.loads(Path(a.config).read_text()) if a.config else None
-data = dict(config=cfg, rates=ps.RATES, rewards=rewards, revenue=rev,
+design = {}
+dp = ROOT / "data/input/batch_design.csv"
+if dp.exists():
+    design = {r["batch_name"]: dict(weeks=int(float(r["weeks"])), status=r["status"]) for r in csv.DictReader(open(dp))}
+calib = dict(e=0.263, rho=0.858)
+cp = ROOT / "data/output/rate_cards.json"
+if cp.exists():
+    j = json.loads(cp.read_text())
+    calib = dict(e=round(j["e"], 4), rho=round(j["rho"], 4))
+data = dict(design=design, calib=calib, cardDefault=not a.no_card, config=cfg, rates=ps.RATES, rewards=rewards, revenue=rev,
             batches=[dict(name=k, rows=v) for k, v in sorted(batches.items(), key=lambda kv: -len(kv[1]))])
 html = (Path(__file__).with_name("playground.template.html").read_text()
         .replace("__DATA__", json.dumps(data, separators=(",", ":")).replace("</", "<\\/")))

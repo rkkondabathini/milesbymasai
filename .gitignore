@@ -28,3 +28,5 @@ query_result_*.csv
 miles_cost_per_batch*.csv
 miles_playground_config_*.json
 updated_config.json
+data/input/batch_design.csv
+data/output/rate_cards.*

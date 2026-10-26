@@ -46,6 +46,13 @@ tr.tot td{font-weight:700;border-top:2px solid var(--ink);background:#fafafc}
 .res{overflow:auto}
 input.fee{width:78px;padding:5px 6px;font-size:14px}
 #tbl table{font-size:14px}
+.cardctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;align-items:end;margin-bottom:12px}
+.patrow{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:13px;margin-bottom:12px}
+.patrow input{width:64px;margin-left:4px;padding:5px 7px}
+.muted{color:var(--mut)}
+.ct th,.ct td{padding:6px 5px;font-size:12.5px}.ct th{font-size:10.5px}.ct input{width:70px;padding:4px 6px;font-size:13px}
+.ct td.rt{color:var(--mut);font-size:12.5px}
+.ct tr.dis td{opacity:.5}
 .legend{display:flex;gap:14px;font-size:13px;color:var(--mut);margin-top:10px}
 .note{color:var(--mut);font-size:13px;margin-top:10px;line-height:1.55}
 /* rewards editor */
@@ -117,6 +124,29 @@ input.fee{width:78px;padding:5px 6px;font-size:14px}
   <div class="note">Use <b>−</b> / <b>+</b> or type a value. <b>₹ per 1,000 Miles</b> shows how expensive a reward is to Masai for the Miles it uses: <span style="color:var(--red);font-weight:700">red = over ₹500 per 1,000 Miles</span>, which is where cost runs away when repeats are allowed. A cost of 0 adds nothing. <span class="tbd">?</span> = cost not confirmed yet, counted as 0.</div>
 </div>
 
+<div class="card rwcard" id="cardsec"><h2>5 · Batch rate cards</h2>
+  <div class="cardctl">
+    <label class="row" style="gap:8px;font-weight:600"><input type="checkbox" id="c_enabled" class="tg"> Use a rate card per batch</label>
+    <label class="f">Target cost, % of batch revenue<input type="number" id="c_target" step="0.05" min="0.1"></label>
+    <label class="f">Engagement: avg student earns this share of the maximum<input type="number" id="c_e" step="0.01" min="0.05" max="1"></label>
+    <label class="f">Cost conversion: High cost ÷ (Miles × ₹ per Mile)<input type="number" id="c_rho" step="0.01" min="0.1" max="1.5"></label>
+    <label class="row" style="gap:8px"><input type="checkbox" id="c_caps" class="tg"> Cap Miles-earning optional, practice and evaluations at the pattern</label>
+  </div>
+  <div class="patrow">
+    <span class="muted">Weekly pattern:</span>
+    <label>mandatory <input type="number" data-pat="mand" step="1" min="0"></label>
+    <label>optional <input type="number" data-pat="opt" step="1" min="0"></label>
+    <label>+ buffer <input type="number" data-pat="buf" step="1" min="0"></label>
+    <label>practice items per mandatory <input type="number" data-pat="pracItems" step="1" min="0"></label>
+    <label>evaluation items in programme <input type="number" data-pat="evalItems" step="1" min="0"></label>
+  </div>
+  <div class="tools"><button class="btn d" id="clearK">Use automatic multipliers</button><button class="btn d" id="resetW">Reset weeks to the design file</button></div>
+  <div class="res"><div id="cardtbl"></div></div>
+  <div class="note"><b>How it works.</b> Each batch's maximum possible Miles comes from its length: weeks × (2 mandatory live + 3 optional live + 4 practice items) + the evaluations. The target maximum is
+  <i>target% × fee ÷ (cost conversion × engagement × ₹ per Mile)</i>. The multiplier <b>k</b> is target ÷ standard maximum, and every rate in that batch is the standard rate × k, rounded to 5.
+  Type a multiplier to lock it for a batch (a <b>manual</b> tag appears); weeks come from <code>batch_design.csv</code> and are editable. Yellow = changed from the default.</div>
+</div>
+
 <script>
 const DATA = __DATA__;
 /*PURE_START*/
@@ -135,11 +165,39 @@ function bestTable(items, cap, maxUnits, unit) {
   }
   return { best, used };
 }
+const BASE = ["ml", "mr", "nl", "nr", "p", "ga", "ge", "me"];
+const DEF_PAT = { mand: 2, opt: 2, buf: 1, pracItems: 2, evalItems: 10 };
+function r5(x) { return Math.max(5, Math.round(x / 5) * 5); }
+function designCeil(W, R, P) { return W * (P.mand * R.ml + (P.opt + P.buf) * R.nl + P.mand * P.pracItems * R.p) + P.evalItems * R.ge; }
+function batchPlan(S, D) {
+  const C = S.card || { enabled: false, caps: false, pat: DEF_PAT, batches: {} };
+  return D.batches.map((b) => {
+    const ov = (C.batches && C.batches[b.name]) || {};
+    const W = Math.max(1, +ov.weeks || ((D.design || {})[b.name] || {}).weeks || 26);
+    const fee = S.fee[b.name] || 0, std = designCeil(W, S.rates, C.pat);
+    const target = C.enabled && fee > 0 && std > 0 ? (C.target / 100) * fee * S.mpr / (C.rho * C.e) : 0;
+    let k = 1, manual = false;
+    if (C.enabled) { if (ov.k > 0) { k = +ov.k; manual = true; } else if (target > 0) k = target / std; }
+    const rates = {}; BASE.forEach((a) => { rates[a] = C.enabled ? r5(S.rates[a] * k) : S.rates[a]; });
+    return { name: b.name, W, fee, std, target, k, manual, rates, cardMax: designCeil(W, rates, C.pat), caps: !!C.caps, pat: C.pat };
+  });
+}
+function milesOfCard(row, Rb, boost, W, P, caps) {
+  let [ml, mr, nl, nr, p, ga, ge, me] = row;
+  if (caps) {
+    const cm = P.mand * W, co = (P.opt + P.buf) * W;
+    let l = Math.min(ml, cm); mr = Math.min(mr, cm - l); ml = l;
+    l = Math.min(nl, co); nr = Math.min(nr, co - l); nl = l;
+    p = Math.min(p, P.mand * P.pracItems * W); ge = Math.min(ge, P.evalItems);
+  }
+  return Math.floor((ml * Rb.ml + mr * Rb.mr + nl * Rb.nl + nr * Rb.nr + p * Rb.p + ga * Rb.ga + ge * Rb.ge + me * Rb.me) * boost);
+}
 function computeAll(S, D) {
   const R = S.rates, items = S.rewards.filter((r) => r.on && r.cost > 0 && r.miles > 0);
   let unit = 0; items.forEach((r) => { unit = gcd(unit, Math.round(r.miles)); });
   unit = Math.max(unit, 50);
-  const perBatch = D.batches.map((b) => b.rows.map((row) => milesOf(row, R, S.boost)));
+  const plan = batchPlan(S, D);
+  const perBatch = D.batches.map((b, i) => b.rows.map((row) => milesOfCard(row, plan[i].rates, S.boost, plan[i].W, plan[i].pat, plan[i].caps)));
   const top = Math.max(0, ...perBatch.map((a) => Math.max(0, ...a)));
   const T0 = bestTable(items, S.cap, Math.floor(top / unit), unit), table = T0.best, tUsed = T0.used;
   const out = D.batches.map((b, i) => {
@@ -155,7 +213,8 @@ function computeAll(S, D) {
     }
     const n = b.rows.length, s = S.share / 100, fee = S.fee[b.name] ?? 0, revenue = fee * n;
     return { name: b.name, n, elig, avg: n ? Math.round(tot / n) : 0, totalMiles: tot, fee, revenue,
-             low: low * s, high: high * s, worst: worst * s, lowM: lowM * s, highM: highM * s, worstM: worstM * s };
+             low: low * s, high: high * s, worst: worst * s, lowM: lowM * s, highM: highM * s, worstM: worstM * s,
+             plan: plan[i], maxSeen: Math.max(0, ...perBatch[i]) };
   });
   const T = out.reduce((a, r) => ({ n: a.n + r.n, elig: a.elig + r.elig, totalMiles: a.totalMiles + r.totalMiles, revenue: a.revenue + r.revenue,
     low: a.low + r.low, high: a.high + r.high, worst: a.worst + r.worst, lowM: a.lowM + r.lowM, highM: a.highM + r.highM, worstM: a.worstM + r.worstM }), { n: 0, elig: 0, totalMiles: 0, revenue: 0, low: 0, high: 0, worst: 0, lowM: 0, highM: 0, worstM: 0 });
@@ -166,8 +225,10 @@ function computeAll(S, D) {
 
 const LABELS = { ml: "Mandatory lecture, live", mr: "Mandatory lecture, recording", nl: "Other lecture, live", nr: "Other lecture, recording",
   p: "Practice assignment", ga: "Graded assignment", ge: "Graded evaluation", me: "Mock evaluation" };
+const CAL = DATA.calib || { e: 0.263, rho: 0.858 };
 const baseState = () => ({ rates: { ...DATA.rates }, boost: 1, share: 100, cap: 3, auto: true, mpr: 10, rnd: 100,
-  rewards: DATA.rewards.map((r) => ({ ...r, manual: false })), fee: { ...DATA.revenue } });
+  rewards: DATA.rewards.map((r) => ({ ...r, manual: false })), fee: { ...DATA.revenue },
+  card: { enabled: DATA.cardDefault !== false, target: 1.25, e: CAL.e, rho: CAL.rho, caps: true, pat: { ...DEF_PAT }, batches: {} } });
 const fresh = () => { const f = baseState(); if (DATA.config) applyConfig(f, DATA.config); applyAuto(f); return f; };
 function applyAuto(St) { if (!St.auto) return; St.rewards.forEach((r) => { if (!r.manual && r.cost > 0) r.miles = Math.max(St.rnd, Math.round((r.cost * St.mpr) / St.rnd) * St.rnd); }); }
 let S = fresh(), UNIT = "L", FILTER = "";
@@ -187,16 +248,19 @@ function exportConfig() {
     settings: { milesPerActivity: { ...S.rates }, streakBoost: S.boost, shareWhoRedeem: S.share, repeatCap: S.cap,
       autoPriceMilesFromCost: S.auto, milesPerRupee: S.mpr, roundMilesTo: S.rnd },
     rewards: S.rewards.map((r) => ({ name: r.name, group: r.group, miles: r.miles, cost: r.cost, repeatable: !!r.rep, on: !!r.on, manualMiles: !!r.manual, costConfirmed: !r.tbd })),
+    batchRateCards: { enabled: S.card.enabled, targetPct: S.card.target, engagement: S.card.e, costConversion: S.card.rho, capsOn: S.card.caps,
+      pattern: { ...S.card.pat },
+      batches: Object.fromEntries(batchPlan(S, DATA).map((p) => [p.name, { weeks: p.W, ...(p.manual ? { multiplier: +p.k.toFixed(4) } : {}) }])) },
     feePerStudent: { ...S.fee },
     dataset: { batches: DATA.batches.map((b) => ({ name: b.name, students: b.rows.length })) },
     resultsSnapshot: { note: "informational only, recomputed on load",
       totalStudents: T.n, revenue: Math.round(T.revenue),
       low: Math.round(T.low), high: Math.round(T.high), worstCase: Math.round(T.worst),
       lowMiles: Math.round(T.lowM), highMiles: Math.round(T.highM), worstMiles: Math.round(T.worstM),
-      perBatch: C.rows.map((r) => ({ batch: r.name, students: r.n, revenue: Math.round(r.revenue), low: Math.round(r.low), high: Math.round(r.high), worstCase: Math.round(r.worst) })) },
+      perBatch: C.rows.map((r) => ({ batch: r.name, students: r.n, multiplier: +r.plan.k.toFixed(3), revenue: Math.round(r.revenue), low: Math.round(r.low), high: Math.round(r.high), worstCase: Math.round(r.worst) })) },
   };
 }
-function applyConfig(St, cfg) {
+function applyConfig(St, cfg, opts) {
   if (!cfg || cfg.app !== "miles-cost-playground" || !cfg.settings) throw new Error("This does not look like a playground config file.");
   const c = cfg.settings, num = (v, d) => (Number.isFinite(+v) ? +v : d);
   Object.keys(St.rates).forEach((k) => { if (c.milesPerActivity && k in c.milesPerActivity) St.rates[k] = num(c.milesPerActivity[k], St.rates[k]); });
@@ -207,6 +271,13 @@ function applyConfig(St, cfg) {
     r.miles = num(q.miles, r.miles); r.cost = num(q.cost, r.cost); r.rep = !!q.repeatable; r.on = q.on !== false; r.manual = !!q.manualMiles; if (q.costConfirmed) r.tbd = false; saved.delete(r.name); });
   saved.forEach((q) => St.rewards.push({ name: q.name, group: q.group || "Custom", miles: num(q.miles, 0), cost: num(q.cost, 0), tbd: q.costConfirmed === false,
     rep: !!q.repeatable, on: q.on !== false, manual: !!q.manualMiles }));
+  const bc = cfg.batchRateCards;
+  if (bc) {
+    const C = St.card; C.enabled = !!bc.enabled; C.target = num(bc.targetPct, C.target); C.e = num(bc.engagement, C.e); C.rho = num(bc.costConversion, C.rho); C.caps = bc.capsOn !== false;
+    if (bc.pattern) Object.keys(C.pat).forEach((k) => { if (k in bc.pattern) C.pat[k] = num(bc.pattern[k], C.pat[k]); });
+    C.batches = {};
+    Object.keys(bc.batches || {}).forEach((b) => { const q = bc.batches[b]; C.batches[b] = { weeks: num(q.weeks, 0) || undefined, k: q.multiplier > 0 ? +q.multiplier : undefined }; });
+  } else if (opts && opts.legacyOff) { St.card.enabled = false; St.card.caps = false; }
   if (cfg.feePerStudent) Object.keys(cfg.feePerStudent).forEach((b) => { St.fee[b] = num(cfg.feePerStudent[b], St.fee[b] || 0); });
   return St;
 }
@@ -217,7 +288,7 @@ function datasetNote(cfg) {
   const have = new Set(DATA.batches.map((b) => b.name)), saved = ((cfg.dataset || {}).batches || []).map((b) => b.name);
   const missing = saved.filter((n) => !have.has(n)); return missing.length ? ` ${missing.length} batch(es) in the file are not in this build and were ignored.` : "";
 }
-function drawAll() { drawRates(); drawRewards(); render(); }
+function drawAll() { drawRates(); drawRewards(); drawCards(); render(); }
 
 function drawRates() {
   $("rates").innerHTML = Object.keys(LABELS).map((k) => `<label class="f">${LABELS[k]}<input type="number" data-r="${k}" value="${S.rates[k]}" step="50" min="0" class="${S.rates[k] !== DATA.rates[k] ? "chg" : ""}"></label>`).join("");
@@ -263,18 +334,51 @@ function drawRewards() {
       }).join("") + `</tbody></table>`);
   }).join("") || '<p class="note">No reward matches.</p>';
 }
+function drawCards() {
+  const c = S.card;
+  $("c_enabled").checked = c.enabled; $("c_target").value = c.target; $("c_e").value = c.e; $("c_rho").value = c.rho; $("c_caps").checked = c.caps;
+  document.querySelectorAll("[data-pat]").forEach((el) => (el.value = c.pat[el.dataset.pat]));
+  const sorted = D_ORDER();
+  $("cardtbl").innerHTML = `<table class="ct"><thead><tr><th>Batch</th><th>Students</th><th>Fee ₹</th><th>Weeks</th><th>Standard max Miles</th><th>Target max Miles</th><th>Multiplier ×</th><th>High % of revenue</th><th>Max Miles with card</th><th>Highest student</th>
+    <th>Live mandatory</th><th>Recorded mandatory</th><th>Live optional</th><th>Recorded optional</th><th>Practice</th></tr></thead><tbody>` +
+    sorted.map((i) => `<tr id="ctr${i}"><td>${DATA.batches[i].name}${(DATA.design[DATA.batches[i].name] || {}).status === "ongoing" ? ' <span class="tag m0">ongoing</span>' : ""}</td><td>${IN(DATA.batches[i].rows.length)}</td>
+      <td id="cf${i}"></td><td><input type="number" data-cw="${i}" min="1" step="1"></td><td id="cs${i}"></td><td id="ct${i}"></td>
+      <td><input type="number" data-ck="${i}" min="0.05" step="0.05"> <span id="cm${i}"></span></td><td id="cp${i}"></td><td id="cx${i}"></td><td id="cy${i}"></td>
+      <td class="rt" id="r_ml${i}"></td><td class="rt" id="r_mr${i}"></td><td class="rt" id="r_nl${i}"></td><td class="rt" id="r_nr${i}"></td><td class="rt" id="r_p${i}"></td></tr>`).join("") + "</tbody></table>";
+}
+function D_ORDER() { return DATA.batches.map((_, i) => i).sort((a, b) => DATA.batches[b].rows.length - DATA.batches[a].rows.length); }
+function paintCards(C) {
+  const c = S.card;
+  if (!$("cardtbl").firstChild) return;
+  C.rows.forEach((r, i) => {
+    const p = r.plan, d = (DATA.design || {})[r.name] || {}, set = (id, v) => { const e = $(id); if (e) e.innerHTML = v; };
+    const wi = document.querySelector(`[data-cw="${i}"]`), ki = document.querySelector(`[data-ck="${i}"]`);
+    if (wi && document.activeElement !== wi) wi.value = p.W;
+    if (wi) wi.classList.toggle("chg", p.W !== d.weeks);
+    if (ki && document.activeElement !== ki) ki.value = c.enabled ? +p.k.toFixed(2) : "";
+    if (ki) { ki.disabled = !c.enabled; ki.classList.toggle("chg", p.manual); }
+    set("cf" + i, IN(p.fee)); set("cs" + i, IN(p.std)); set("ct" + i, c.enabled ? IN(p.target) : "–");
+    set("cm" + i, p.manual ? '<span class="tag m">manual</span>' : c.enabled ? '<span class="tag a">auto</span>' : "");
+    ["ml", "mr", "nl", "nr", "p"].forEach((a) => set(`r_${a}${i}`, p.rates[a]));
+    set("cx" + i, IN(p.cardMax)); set("cy" + i, IN(r.maxSeen));
+    const pct = r.revenue ? (100 * r.high) / r.revenue : 0;
+    set("cp" + i, r.revenue ? `<b class="${pct >= 1 && pct <= 1.5 ? "p1" : pct < 1 ? "p2" : "p3"}">${pct.toFixed(2)}%</b>` : "–");
+    const tr = $("ctr" + i); if (tr) tr.classList.toggle("dis", !c.enabled);
+  });
+}
 function render() {
   const C = computeAll(S, DATA), T = C.total;
   const pc = (v, rev) => (rev ? (100 * v) / rev : 0);
   const kp = (t, v, m, hi) => `<div class="kpi ${hi ? "hi" : ""}"><small>${t}</small><b>${money(v)}</b><div class="mm">${miles(m)} Miles redeemed <i>(${T.totalMiles ? (100 * m / T.totalMiles).toFixed(0) : 0}% of all earned)</i></div><span>${T.revenue ? pc(v, T.revenue).toFixed(1) + "% of revenue · " : ""}₹${IN(T.n ? v / T.n : 0)} per student</span></div>`;
   $("kpis").innerHTML = kp("Low", T.low, T.lowM) + kp("High", T.high, T.highM, true) + kp("Worst case", T.worst, T.worstM);
   const cell = (v, rev, m) => `<td class="grp">${money(v)}</td><td class="m">${miles(m)}</td><td class="pct ${cls(pc(v, rev))}">${rev ? pc(v, rev).toFixed(1) + "%" : "–"}</td>`;
-  $("tbl").innerHTML = `<table><thead><tr><th>Batch</th><th>Students</th><th>Can claim</th><th>Avg Miles</th><th>Fee / student ₹</th><th>Revenue</th>
+  $("tbl").innerHTML = `<table><thead><tr><th>Batch</th><th>Students</th><th>Can claim</th><th>Avg Miles</th><th>Card ×</th><th>Fee / student ₹</th><th>Revenue</th>
       <th class="grp">Low ₹</th><th>Miles</th><th>% rev</th><th class="grp">High ₹</th><th>Miles</th><th>% rev</th><th class="grp">Worst ₹</th><th>Miles</th><th>% rev</th><th class="grp">Worst / student</th></tr></thead><tbody>` +
-    C.rows.map((r) => `<tr><td>${r.name}</td><td>${IN(r.n)}</td><td>${IN(r.elig)}</td><td>${IN(r.avg)}</td>
+    C.rows.map((r) => `<tr><td>${r.name}</td><td>${IN(r.n)}</td><td>${IN(r.elig)}</td><td>${IN(r.avg)}</td><td class="m">${S.card.enabled ? r.plan.k.toFixed(2) + "×" : "–"}</td>
       <td><input class="fee" type="number" data-fee="${r.name}" value="${r.fee}" step="500" min="0"></td><td>${money(r.revenue)}</td>${cell(r.low, r.revenue, r.lowM)}${cell(r.high, r.revenue, r.highM)}${cell(r.worst, r.revenue, r.worstM)}<td class="grp">₹${IN(r.n ? r.worst / r.n : 0)}</td></tr>`).join("") +
-    `<tr class="tot"><td>All batches</td><td>${IN(T.n)}</td><td>${IN(T.elig)}</td><td>${IN(T.avg)}</td><td></td><td>${money(T.revenue)}</td>${cell(T.low, T.revenue, T.lowM)}${cell(T.high, T.revenue, T.highM)}${cell(T.worst, T.revenue, T.worstM)}<td class="grp">₹${IN(T.n ? T.worst / T.n : 0)}</td></tr></tbody></table>`;
+    `<tr class="tot"><td>All batches</td><td>${IN(T.n)}</td><td>${IN(T.elig)}</td><td>${IN(T.avg)}</td><td></td><td></td><td>${money(T.revenue)}</td>${cell(T.low, T.revenue, T.lowM)}${cell(T.high, T.revenue, T.highM)}${cell(T.worst, T.revenue, T.worstM)}<td class="grp">₹${IN(T.n ? T.worst / T.n : 0)}</td></tr></tbody></table>`;
   window.__last = C;
+  paintCards(C);
   autosave();
 }
 function refreshRow(i) {
@@ -309,6 +413,14 @@ document.addEventListener("input", (e) => {
   else if (t.id === "mpr") { S.mpr = Math.max(0.1, +t.value || 10); applyAuto(S); autoNote(); refreshAllRows(); }
   else if (t.id === "rnd") { S.rnd = +t.value; applyAuto(S); autoNote(); refreshAllRows(); }
   else if (t.dataset.fee) S.fee[t.dataset.fee] = +t.value || 0;
+  else if (t.id === "c_enabled") S.card.enabled = t.checked;
+  else if (t.id === "c_caps") S.card.caps = t.checked;
+  else if (t.id === "c_target") S.card.target = Math.max(0.05, +t.value || 1.25);
+  else if (t.id === "c_e") S.card.e = Math.min(1, Math.max(0.05, +t.value || 0.263));
+  else if (t.id === "c_rho") S.card.rho = Math.min(1.5, Math.max(0.1, +t.value || 0.858));
+  else if (t.dataset.pat) S.card.pat[t.dataset.pat] = Math.max(0, +t.value || 0);
+  else if (t.dataset.cw) { const n = DATA.batches[+t.dataset.cw].name; S.card.batches[n] = { ...(S.card.batches[n] || {}), weeks: Math.max(1, +t.value || 1) }; }
+  else if (t.dataset.ck) { const n = DATA.batches[+t.dataset.ck].name; S.card.batches[n] = { ...(S.card.batches[n] || {}), k: +t.value > 0 ? +t.value : undefined }; }
   render();
 });
 document.addEventListener("click", (e) => {
@@ -320,6 +432,8 @@ document.addEventListener("click", (e) => {
   const g = e.target.closest(".gh"); if (g && !e.target.closest("label")) { collapsed[g.dataset.g] = !collapsed[g.dataset.g]; drawRewards(); }
   const u = e.target.closest("#unit button"); if (u) { UNIT = u.dataset.u; document.querySelectorAll("#unit button").forEach((x) => x.classList.toggle("on", x === u)); render(); }
 });
+$("clearK").onclick = () => { Object.keys(S.card.batches).forEach((n) => { if (S.card.batches[n]) S.card.batches[n].k = undefined; }); render(); };
+$("resetW").onclick = () => { Object.keys(S.card.batches).forEach((n) => { if (S.card.batches[n]) S.card.batches[n].weeks = undefined; }); render(); };
 $("add").onclick = () => { S.rewards.push({ name: "New reward", miles: 5000, cost: 1000, tbd: false, rep: false, group: "Custom", on: true, manual: false }); applyAuto(S); drawRewards(); render(); };
 $("allon").onclick = () => { S.rewards.forEach((r) => (r.on = true)); drawRewards(); render(); };
 $("alloff").onclick = () => { S.rewards.forEach((r) => (r.on = false)); drawRewards(); render(); };
@@ -340,12 +454,12 @@ $("save").onclick = () => {
 $("load").onclick = () => $("file").click();
 $("file").onchange = async (e) => {
   const f = e.target.files[0]; if (!f) return; e.target.value = "";
-  try { const cfg = JSON.parse(await f.text()); const next = baseState(); applyConfig(next, cfg); applyAuto(next); S = next; drawAll(); toast("Loaded " + f.name + "." + datasetNote(cfg), 5000); }
+  try { const cfg = JSON.parse(await f.text()); const next = baseState(); applyConfig(next, cfg, { legacyOff: true }); applyAuto(next); S = next; drawAll(); toast("Loaded " + f.name + "." + datasetNote(cfg), 5000); }
   catch (err) { toast("Could not load: " + err.message, 6000); }
 };
 $("reset").onclick = () => { S = fresh(); FILTER = ""; $("q").value = ""; try { localStorage.removeItem(LS); } catch (e) {} drawAll(); toast("Reset to " + (DATA.config ? "the built-in config" : "defaults")); };
-try { const raw = localStorage.getItem(LS); if (raw) { const cfg = JSON.parse(raw), next = baseState(); applyConfig(next, cfg); S = next; toast("Restored your last session. “Reset all” clears it.", 4500); } } catch (e) {}
-drawRates(); drawRewards(); render();
+try { const raw = localStorage.getItem(LS); if (raw) { const cfg = JSON.parse(raw), next = baseState(); applyConfig(next, cfg, { legacyOff: true }); S = next; toast("Restored your last session. “Reset all” clears it.", 4500); } } catch (e) {}
+drawRates(); drawRewards(); drawCards(); render();
 </script>
 </body>
 </html>
