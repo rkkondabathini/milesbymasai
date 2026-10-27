@@ -30,3 +30,4 @@ miles_playground_config_*.json
 updated_config.json
 data/input/batch_design.csv
 data/output/rate_cards.*
+webapp/dist-demo/

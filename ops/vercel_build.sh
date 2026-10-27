@@ -16,6 +16,10 @@ if [ -n "${MILES_REDEEM_ENDPOINT:-}" ] && [ -z "${REDEEM_SECRET:-}" ]; then
   exit 1
 fi
 
+if [ -n "${MILES_DEMO:-}" ]; then   # leadership demo project: invented learners, no Metabase, no sheet
+  echo "building DEMO site"; node webapp/build.mjs; rm -rf webapp/dist; cp -R webapp/dist-demo webapp/dist; exit 0
+fi
+
 command -v python3 >/dev/null || { echo "python3 not available in this build image"; exit 1; }
 METABASE_DAILY="${METABASE_DAILY:-https://metabase.masaischool.com/public/question/baf81ac4-fa74-4272-b341-09c097f06ec2.csv}"
 

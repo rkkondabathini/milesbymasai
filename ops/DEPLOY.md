@@ -42,3 +42,15 @@ The team updates column L (`status`) on the Redemptions tab:
 4. Deploy > Manage deployments > pencil > **New version** (saving alone does not update the live web app).
 5. Optional env var for the dashboard: `MILES_REWARDS_EMAIL` (mailbox students send reimbursement invoices to).
 See `docs/redemption_operations.md` for the full operating procedure.
+
+
+## Leadership demo site (separate Vercel project, no real data)
+
+The demo is the same app with two invented learners (Aarav, an active learner with a streak and 6,000 Miles to spend, and Meera, a new learner). Redemptions are simulated in the browser, so nothing reaches the Redemptions sheet. It contains no learner data, fees or secrets, and the real site is not touched.
+
+1. Vercel -> Add New -> Project -> import `rkkondabathini/milesbymasai` again, name it e.g. `milesbymasai-demo`.
+2. Settings -> Environment Variables (Production): `MILES_DEMO` = `1`. Do not add REDEEM_SECRET, MILES_REDEEM_ENDPOINT or MILES_REDEEMED_CSV.
+3. Deploy (the build runs `ops/vercel_build.sh`, which builds the demo and skips Metabase).
+4. Share the URL. The login page shows two buttons that fill in the demo login. "Reset demo" (bottom bar) clears reserved Miles so the flow can be shown again.
+
+Local preview: `MILES_DEMO=1 node webapp/build.mjs`, then open `webapp/dist-demo/index.html`.

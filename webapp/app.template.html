@@ -448,6 +448,12 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .fbox button:disabled{opacity:.65}
 .err{color:#c4182f;margin-top:12px;font-size:14px;min-height:20px}
 .fbox .fine{font-size:12px;color:var(--mut);margin-top:10px}
+.demo-box{background:#fff4d6;border:1px solid #f0d58a;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#5b4300}
+.demo-box b{display:block;margin-bottom:6px;font-size:13.5px}
+.demo-box button{display:block;width:100%;text-align:left;margin-top:6px;border:1px solid #e6c765;background:#fff;border-radius:9px;padding:8px 10px;font:600 13px/1.35 inherit;cursor:pointer;color:#14161f}
+.demo-box button small{display:block;font-weight:500;color:#6b7280}
+#demobar{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9999;background:#14161f;color:#fff;border-radius:99px;padding:7px 8px 7px 14px;font-size:12.5px;display:flex;gap:10px;align-items:center;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+#demobar b{color:#ffd66b;letter-spacing:.06em}#demobar button{border:0;background:#fff;color:#14161f;border-radius:99px;padding:4px 11px;font:700 12px inherit;cursor:pointer}
 .lg-l .logo .m{font-size:46px}
 .ls{margin-top:30px}
 .ls .t{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.85)}
@@ -529,6 +535,13 @@ const REDEEM_ENDPOINT = "__REDEEM_ENDPOINT__";     // Apps Script /exec URL (set
 const TICKET_URL = "https://learn.masaischool.com/";
 const SUPPORT_PHONE = "9999999999";                         // fallback when a learner has no PC phone on file
 const BLOB = JSON.parse(document.getElementById("blob").textContent);
+const DEMO = !!BLOB.demo;   // leadership demo build: invented learners, redemptions are simulated in the browser
+if (DEMO) {
+  const bar = document.createElement("div"); bar.id = "demobar";
+  bar.innerHTML = '<span><b>DEMO</b> · sample learner, nothing here is real or saved</span><button type="button" id="demoreset">Reset demo</button>';
+  document.body.appendChild(bar);
+  document.getElementById("demoreset").addEventListener("click", () => { try { Object.keys(localStorage).filter((k) => k.startsWith("miles.")).forEach((k) => localStorage.removeItem(k)); } catch (e) {} location.reload(); });
+}
 const $app = document.getElementById("app");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt = (n) => Number(n || 0).toLocaleString("en-IN");
@@ -588,6 +601,7 @@ function loginView(msg) {
   $app.innerHTML = `<div class="lg">
     <section class="lg-r"><form class="fbox" id="f" autocomplete="on">
       <div class="logo mlogo"><span class="m">miles</span><span class="b">by masai</span></div>
+      ${DEMO ? `<div class="demo-box"><b>Demo login: pick a sample learner</b>${(BLOB.demo_logins || []).map((x, i) => `<button type="button" data-demo="${i}">${esc(x.label)}<small>${esc(x.phone)} · ${esc(x.email)}</small></button>`).join("")}</div>` : ""}
       <div class="fld">${ic("phone")}<input id="p" name="tel" type="tel" inputmode="tel" autocomplete="tel" required placeholder="10-digit Registered mobile number" aria-label="Registered mobile number"></div>
       <div class="fld">${ic("mail")}<input id="e" name="email" type="email" autocomplete="email" required placeholder="Registered email id" aria-label="Registered email id"></div>
       <button id="go" type="submit">View my Miles</button>
@@ -626,6 +640,8 @@ function loginView(msg) {
     </aside></div>`;
   const fqm = document.getElementById("fqm");
   if (fqm) fqm.addEventListener("click", () => { const o = document.getElementById("fqs").classList.toggle("expanded"); fqm.textContent = o ? "Show fewer" : "More questions"; });
+  document.querySelectorAll("[data-demo]").forEach((b) => b.addEventListener("click", () => { const x = BLOB.demo_logins[+b.dataset.demo];
+    document.getElementById("p").value = x.phone; document.getElementById("e").value = x.email; document.getElementById("f").requestSubmit(); }));
   document.getElementById("f").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const go = document.getElementById("go"), err = document.getElementById("err");
@@ -874,7 +890,7 @@ function dashboard(st) {
       dlgShell("lk", "lock", x.name, `${fmt(x.cost)} Miles`, `<div class="kv"><span>Your Miles</span><b>${fmt(sp)}</b></div><div class="kv"><span>Still needed</span><b class="neg">${fmt(gap)}</b></div>
         <p class="msg">About ${Math.ceil(gap / 200)} live lectures or ${Math.ceil(gap / 100)} practice assignments away.</p>${closeBtn}`); bindClose(); return;
     }
-    const live = !!REDEEM_ENDPOINT;
+    const live = !!REDEEM_ENDPOINT || DEMO;
     const rule = ruleOf(x.name), physical = rule && rule.key === "physical", sizeNeeded = !!(rule && rule.size);
     const consentText = `I confirm I want to redeem "${x.name}" for ${fmt(x.cost)} Miles. The Miles will be deducted from my balance and this request cannot be undone.`;
     const howHtml = rule ? `<div class="how"><h5>${esc(rule.label)}</h5><ol>${rule.how.map((h) => `<li>${esc(h)}</li>`).join("")}</ol>
@@ -916,8 +932,15 @@ function dashboard(st) {
         confirmed: true, confirmation_text: consentText, contact_phone: ph.value.trim(), terms_ack: true,
         ship: physical ? shipData() : undefined, size: sizeNeeded ? g("a_size") : undefined };
       try {
-        const res = await fetch(REDEEM_ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) });
-        const j = await res.json();
+        let j;
+        if (DEMO) {   // simulated: nothing leaves the browser
+          await new Promise((r) => setTimeout(r, 700));
+          const due = new Date(); due.setDate(due.getDate() + ((rule && rule.sla_days) || 10));
+          j = { ok: true, due_by: due.toISOString().slice(0, 10) };
+        } else {
+          const res = await fetch(REDEEM_ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) });
+          j = await res.json();
+        }
         if (!j.ok) throw new Error(j.error || "failed");
         myReq.push({ reward_id: x.reward_id, cost: x.cost, as_of: d.data_as_of, request_id: body.request_id }); savePend(); paint(); paintWallet();
         const next = rule ? `<div class="how" style="margin-top:6px"><h5>What happens next</h5><ol>${rule.how.map((h) => `<li>${esc(h)}</li>`).join("")}</ol></div>` : "";
