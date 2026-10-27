@@ -42,7 +42,7 @@ mx = 2.0
 cases = "".join(bar(n, T[k], T["rev"], mx) for n, k in (("Low: cheapest reward each", "low"), ("High: best reward each, once", "high"), ("Worst: every Mile spent", "worst")))
 per = "".join(bar(f'{r["b"]} <small>({r["n"]:,} students)</small>', r["high"], r["rev"], mx) for r in rows)
 tbl = "".join(f'<tr><td>{r["b"]}</td><td>{r["n"]:,}</td><td>{r["W"]}</td><td>₹{r["fee"]:,.0f}</td><td>{r["M"]:,}</td><td>{r["lv"]:.2f}</td><td>{r["claim"]:.0f}%</td></tr>' for r in rows)
-ex = rows[0]["M"]
+ex = 35500   # a 26-week batch
 ladder_rows = [(x["name"], x["pct"]) for x in ladder if x["name"] in LD.OVERRIDES] + [("A ₹1,500 reward", LD.default_pct(1500)), ("A ₹500 reward", LD.default_pct(500))]
 lad = "".join(f'<tr><td>{n}</td><td>{p * 100:.0f}% of max</td><td>{LD.rstep(p * ex):,} Miles</td></tr>' for n, p in ladder_rows)
 html = f"""<!doctype html><meta charset=utf-8><title>Miles by Masai: reward cost</title><style>
