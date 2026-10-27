@@ -12,6 +12,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import leadership_numbers as L
 import payout_sim as ps
 import reward_rules as RR
+import ladder as LD
+import rate_card as RC
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--config", required=True)
@@ -20,7 +22,9 @@ ap.add_argument("--programme", required=True, nargs="+", help="export(s) coverin
 ap.add_argument("--fees-csv", help="CSV batch_name,revenue_per_student; adds to / overrides the fees in the config")
 ap.add_argument("--fee", action="append", default=[], help="BATCH=fee_per_student, for batches missing from the config")
 ap.add_argument("--out", default=str(Path(__file__).resolve().parent.parent / "data/output/leadership"))
-ap.add_argument("--date", default="16 Oct 2026")
+ap.add_argument("--date", default="27 Oct 2026")
+ap.add_argument("--target", type=float, default=1.25)
+ap.add_argument("--design", default=str(Path(__file__).resolve().parent.parent / "data/input/batch_design.csv"))
 a = ap.parse_args()
 
 cfg = L.load_cfg(a.config)
@@ -33,7 +37,7 @@ if a.fees_csv:
 for f in a.fee:
     k, v = f.split("="); fees[k] = float(v)
 CAP = S["repeatCap"]
-items = L.rewards_from(cfg)
+items = LD.prices(LD.ladder_from_config(cfg), 35500, 1.0)   # reference batch (26 weeks)
 
 # ------------------------------------------------------------------ numbers
 def by_batch(paths):
@@ -46,11 +50,27 @@ pilot_rows = by_batch(a.pilot)
 prog_rows = by_batch(a.programme)
 PILOT = sorted(pilot_rows, key=lambda b: -len(pilot_rows[b]))
 
+R_ = dict(S["milesPerActivity"])
+LADDER = LD.ladder_from_config(cfg)
+DESIGN = RC.read_design(a.design)
+for b, rs_ in list(prog_rows.items()):
+    pass
+SHARES = LD.quantiles(LD.pooled_shares(prog_rows, DESIGN, fees, R_))
+
+def plan(b, rs, target=None):
+    W = DESIGN[b]["weeks"] if b in DESIGN else max(1, round(st.median(ps.n(r["mandatory_total"]) for r in rs) / 2))
+    M = LD.max_miles(W, R_)
+    fee = fees.get(b)
+    lv = LD.fit_level(fee, M, SHARES, LADDER, target or a.target) if fee else 1.0
+    ms = [RC.miles(RC.capped_counts(r, W), R_) for r in rs]
+    it_ = LD.prices(LADDER, M, lv)
+    o = L.evaluate(ms, it_, CAP)
+    return dict(W=W, M=M, lv=lv, miles=ms, o=o, items=it_)
+
 pilot = {}
 for b in PILOT:
-    m = L.student_miles(pilot_rows[b], cfg)
-    o = L.evaluate(m, items, CAP)
-    pilot[b] = dict(miles=m, o=o, fee=fees.get(b), rev=(fees[b] * len(m)) if b in fees else None)
+    pl = plan(b, pilot_rows[b])
+    pilot[b] = dict(miles=pl["miles"], o=pl["o"], fee=fees.get(b), rev=(fees[b] * len(pl["miles"])) if b in fees else None, W=pl["W"], M=pl["M"], lv=pl["lv"], items=pl["items"])
 allm = [x for b in PILOT for x in pilot[b]["miles"]]
 N = len(allm)
 tot = {k: sum(pilot[b]["o"][k] for b in PILOT) for k in ("n", "claim", "low", "high", "worst", "lowM", "highM", "worstM")}
@@ -58,21 +78,19 @@ earned = sum(allm)
 
 prog = {}
 for b, rs in prog_rows.items():
-    m = L.student_miles(rs, cfg); o = L.evaluate(m, items, CAP)
-    prog[b] = dict(o=o, rev=fees.get(b, 0) * len(m), n=len(m), fee=fees.get(b))
-prog = {b: v for b, v in prog.items() if v["fee"]}  # batches without a fee on file cannot be shown against revenue
+    if not fees.get(b) or not (b in PILOT or (b in DESIGN and DESIGN[b]["status"] == "completed")) or len(rs) < RC.MIN_ROWS:
+        continue   # only concluded batches with a fee on file are shown against revenue
+    pl = plan(b, rs)
+    prog[b] = dict(o=pl["o"], rev=fees[b] * len(rs), n=len(rs), fee=fees[b], miles=pl["miles"])
 PT = {k: sum(prog[b]["o"][k] for b in prog) for k in ("n", "claim", "low", "high", "worst")}
 PT["rev"] = sum(prog[b]["rev"] for b in prog)
-PT["earned"] = sum(sum(L.student_miles(prog_rows[b], cfg)) for b in prog)
+PT["earned"] = sum(sum(prog[b]["miles"]) for b in prog)
 MANY = len(PILOT) > 3
 
 # sensitivity (programme High cost, scaled by share who redeem)
-SENS_MPR = [8, 10, 12]
+SENS_MPR = [1.0, 1.25, 1.5]   # aim, % of revenue
 SENS_SHARE = [25, 50, 100]
-sens = {}
-for mpr in SENS_MPR:
-    it = L.rewards_from(cfg, mpr=mpr)
-    sens[mpr] = sum(L.evaluate(L.student_miles(rs, cfg), it, CAP)["high"] for rs in prog_rows.values())
+sens = {t: sum(plan(b, prog_rows[b], t)["o"]["high"] for b in prog) for t in SENS_MPR}
 
 # ------------------------------------------------------------------ helpers
 RED, RED_D, INK, MUT, LINE, PINK, SLATE, GREEN = "#d71f3a", "#a31a2d", "#14161f", "#6b7280", "#e6e8ee", "#fdecef", "#4d5260", "#1a8f58"
@@ -215,11 +233,11 @@ def heat():
     cells = []
     head = "".join(f"<th>{s}% redeem</th>" for s in SENS_SHARE)
     for mpr in SENS_MPR:
-        row = f'<th class="rh">{mpr} Miles = ₹1</th>'
+        row = f'<th class="rh">Aim for {mpr:g}% of revenue</th>'
         for s in SENS_SHARE:
             v = sens[mpr] * s / 100; p = 100 * v / PT["rev"]
-            sel = " sel" if mpr == S["milesPerRupee"] and s == 100 else ""
-            shade = min(1, v / (sens[min(SENS_MPR)] * 1.0))
+            sel = " sel" if mpr == a.target and s == 100 else ""
+            shade = min(1, v / (sens[max(SENS_MPR)] * 1.0))
             row += f'<td class="hc{sel}" style="background:rgba(215,31,58,{.06 + .34 * shade:.2f})"><b>{lakh(v)}</b><span>{pct(p)} of revenue</span></td>'
         cells.append(f"<tr>{row}</tr>")
     return f'<table class="heat"><tr><th></th>{head}</tr>{"".join(cells)}</table>'
@@ -229,9 +247,11 @@ P1, P2 = PILOT[0], PILOT[1] if len(PILOT) > 1 else PILOT[0]
 claim_pct = 100 * tot["claim"] / tot["n"]
 avg_m = earned / N
 med_m = st.median(allm)
-cost_cap = earned * 0.1  # guardrail: at 10 Miles per rupee a Mile can never cost more than Re 0.10
+cost_cap = tot["worst"]
 mpr = S["milesPerRupee"]
-guard = 100 / mpr
+guard = a.target
+REFP = {x["name"]: x for x in LD.prices(LADDER, 35500, 1.0)}
+PCT = {x["name"]: x["pct"] for x in LADDER}
 known_rev = [pilot[b]["rev"] for b in PILOT if pilot[b]["rev"]]
 pilot_pct_known = []
 for b in PILOT:
@@ -240,7 +260,8 @@ for b in PILOT:
         pilot_pct_known.append((b, 100 * o["high"] / pilot[b]["rev"], 100 * o["worst"] / pilot[b]["rev"]))
 unconfirmed = [r for r in cfg["rewards"] if r["on"] and not r["costConfirmed"]]
 unc_names = ", ".join(r["name"].replace("Participation in ", "").replace("Interview with a company", "company interview").lower() for r in unconfirmed)
-unc_min = min((r["miles"] for r in unconfirmed), default=0)
+_un = {r["name"] for r in unconfirmed}
+unc_reach = sum(1 for b in PILOT for m in pilot[b]["miles"] if any(m >= i["miles"] for i in pilot[b]["items"] if i["name"] in _un))
 est = lambda s: tot["high"] * s / 100
 ceiling = math.ceil(tot["worst"] / 1e5 * 10) / 10 * 1e5
 
@@ -262,10 +283,10 @@ detail_rows = ""
 for b in PILOT:
     o, r = pilot[b]["o"], pilot[b]["rev"]
     detail_rows += (f'<tr><td>{esc(b)}</td><td>{o["n"]:,}</td><td>{sum(pilot[b]["miles"]) // o["n"]:,}</td><td>{100 * o["claim"] / o["n"]:.0f}%</td>'
-                    f'<td>{inr(pilot[b]["fee"]) if pilot[b]["fee"] else "–"}</td><td>{lakh(o["high"])}</td><td>{pct(100 * o["high"] / r) if r else "–"}</td>'
+                    f'<td>{inr(pilot[b]["fee"]) if pilot[b]["fee"] else "–"}</td><td>{pilot[b]["M"]:,}</td><td>{pilot[b]["lv"]:.2f}</td><td>{lakh(o["high"])}</td><td>{pct(100 * o["high"] / r) if r else "–"}</td>'
                     f'<td>{lakh(o["worst"])}</td><td>{pct(100 * o["worst"] / r) if r else "–"}</td></tr>')
 _kr = sum(pilot[b]["rev"] for b in PILOT if pilot[b]["rev"])
-detail_rows += (f'<tr class="tot"><td>All {len(PILOT)} batches</td><td>{tot["n"]:,}</td><td>{earned // N:,}</td><td>{claim_pct:.0f}%</td><td></td><td>{lakh(tot["high"])}</td>'
+detail_rows += (f'<tr class="tot"><td>All {len(PILOT)} batches</td><td>{tot["n"]:,}</td><td>{earned // N:,}</td><td>{claim_pct:.0f}%</td><td></td><td></td><td></td><td>{lakh(tot["high"])}</td>'
                 f'<td>{pct(100 * tot["high"] / _kr)}</td><td>{lakh(tot["worst"])}</td><td>{pct(100 * tot["worst"] / _kr)}</td></tr>') if _kr else ""
 TYPE_SHORT = {"physical": "Shipped", "reimburse": "Pay & reimburse", "voucher": "Voucher", "session": "Scheduled", "event": "Subject to event", "discount": "Fee discount", "recognition": "Recognition"}
 cat_groups = collections.OrderedDict()
@@ -273,16 +294,16 @@ for r in cfg["rewards"]:
     if r["on"] and r["cost"] > 0:
         cat_groups.setdefault("Other" if r["group"] == "Custom" else r["group"], []).append(r)
 for g in cat_groups:
-    cat_groups[g].sort(key=lambda r: (r["miles"], r["name"]))
+    cat_groups[g].sort(key=lambda r: (PCT[r["name"]], r["name"]))
 auto_on = S["autoPriceMilesFromCost"]
 cat_html = ""
 for g, rs in cat_groups.items():
-    cat_html += f'<tr class="gr"><td colspan="4">{esc(g)} <span>{len(rs)}</span></td></tr>'
+    cat_html += f'<tr class="gr"><td colspan="5">{esc(g)} <span>{len(rs)}</span></td></tr>'
     for r in rs:
         c = RR.classify(r["name"])
         flag = "" if r["costConfirmed"] else ' <em class="est">estimate</em>'
         rep_ = ' <em class="rp">repeatable</em>' if r["repeatable"] else ""
-        cat_html += (f'<tr><td>{esc(r["name"])}{rep_}{flag}</td><td>{r["miles"]:,}</td><td>{inr(r["cost"])}</td>'
+        cat_html += (f'<tr><td>{esc(r["name"])}{rep_}{flag}</td><td>{PCT[r["name"]] * 100:.0f}%</td><td>{REFP[r["name"]]["miles"]:,}</td><td>{inr(r["cost"])}</td>'
                      f'<td><i class="ty {c["type"]}"></i>{esc(TYPE_SHORT[c["type"]])}</td></tr>')
 n_rewards = sum(len(v) for v in cat_groups.values())
 used_types = collections.Counter(RR.classify(r["name"])["type"] for rs in cat_groups.values() for r in rs)
@@ -297,8 +318,8 @@ chart_batches_block = f'<h2 style="margin:16px 0 4px;font-size:16px">Cost as a s
 cost_table_block = f'<table style="margin-top:10px"><tr><th>Batch</th><th>Students</th><th>Can claim</th><th>High</th><th>% of revenue</th><th>Worst case</th><th>% of revenue</th></tr>{cost_rows}</table>'
 CSS = f"""
 .cat{{font-size:10.8px;line-height:1.2}}.cat td,.cat th{{padding:1.6px 8px;border-bottom:1px solid {LINE}}}.cat th{{font-size:10px}}
-.cat td:nth-child(2),.cat td:nth-child(3),.cat th:nth-child(2),.cat th:nth-child(3){{text-align:right}}
-.cat td:nth-child(4),.cat th:nth-child(4){{text-align:left;white-space:nowrap}}
+.cat td:nth-child(2),.cat td:nth-child(3),.cat td:nth-child(4),.cat th:nth-child(2),.cat th:nth-child(3),.cat th:nth-child(4){{text-align:right}}
+.cat td:nth-child(5),.cat th:nth-child(5){{text-align:left;white-space:nowrap}}
 .cat.det td,.cat.det th{{padding:1.8px 7px;font-size:11px;white-space:nowrap}}.cat.det td,.cat.det th{{text-align:right}}.cat.det td:first-child,.cat.det th:first-child{{text-align:left}}.cat.det tr.tot td{{font-weight:800;border-top:2px solid {INK}}}
 .cat tr.gr td{{background:{PINK};font-weight:800;font-size:11px;color:{RED_D};border-bottom:0;padding:3px 8px}}
 .cat tr.gr span{{background:{RED};color:#fff;border-radius:99px;font-size:10px;padding:1px 7px;margin-left:6px}}
@@ -387,7 +408,7 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
 
 <div class="mast"><div class="k">Leadership brief · {esc(a.date)}</div>
   <div class="logo">miles<small>BY MASAI</small></div>
-  <h1>A rewards programme built to drive learner engagement, with a cost we can cap by design.</h1></div>
+  <h1>A rewards programme built to drive learner engagement, with a cost set to {a.target:g}% of each batch's revenue.</h1></div>
 
 <div class="ask"><span class="tag">Approval sought</span>
   <p>Simulated on <span>{len(PILOT)} concluded batches ({tot["n"]:,} students)</span>: had Miles rewards run, they would have cost <span>{lakh(tot["high"])}</span> if every eligible student claimed once, and never more than <span>{lakh(ceiling)}</span>. Approve launching Miles rewards on this cost model.</p></div>
@@ -411,18 +432,18 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
   {chart_batches_block if MANY else cost_table_block}
   {rev_note}</div>
 
-<div class="sec"><h2>Why the cost cannot run away</h2>
-  <div class="flow"><div class="fb"><b>{earned / 1e5:,.1f} L</b><span>Miles earned</span></div><div class="ar">×</div>
-    <div class="fb r"><b>₹{1 / mpr:.2f}</b><span>max cost per Mile<br>({mpr} Miles = ₹1)</span></div><div class="ar">=</div>
-    <div class="fb"><b>≤ {lakh(cost_cap)}</b><span>hard ceiling</span></div></div>
-  <div class="guard">Every reward is priced from its cost at the same rate, so spending <b>more Miles never costs more than ₹{1 / mpr:.2f} each</b>. Ceiling is {guard:.0f}% of Miles issued. Modelled worst case: <b>{lakh(tot["worst"])}</b>.</div></div>
+<div class="sec"><h2>How prices are set</h2><p class="sub">Every batch has a Maximum Miles figure from its length. Each reward costs a fixed share of it, in round figures.</p>
+  <div class="flow"><div class="fb"><b>{pilot[PILOT[0]]["M"]:,}</b><span>Max Miles<br>({esc(PILOT[0])}, {pilot[PILOT[0]]["W"]} weeks)</span></div><div class="ar">×</div>
+    <div class="fb r"><b>90%</b><span>Founder lunch or call<br>(85% Wall of Fame)</span></div><div class="ar">=</div>
+    <div class="fb"><b>{LD.rstep(0.9 * pilot[PILOT[0]]["M"]):,}</b><span>Miles for the reward</span></div></div>
+  <div class="guard">Rewards at 70% and above keep their share in every batch. The everyday rewards are scaled by a <b>price level set from each batch's fee</b>, so cost lands near <b>{guard:g}% of revenue</b> in every batch. Modelled worst case: <b>{lakh(tot["worst"])}</b>.</div></div>
 
-<div class="sec"><h2>If assumptions move</h2><p class="sub">High-case cost across all {len(prog)} batches, by value of a Mile and by how many students redeem.</p>
+<div class="sec"><h2>If assumptions move</h2><p class="sub">High-case cost across all {len(prog)} concluded batches, by the cost aim and by how many students redeem.</p>
   {heat()}
-  <p class="foot">Highlighted: {mpr} Miles = ₹1, everyone redeems. At 25–50% redemption the cost would be {lakh(PT["high"] * .25)} to {lakh(PT["high"] * .5)}.</p></div>
+  <p class="foot">Highlighted: the {a.target:g}% aim, everyone redeems. At 25–50% redemption the cost would be {lakh(PT["high"] * .25)} to {lakh(PT["high"] * .5)}.</p></div>
 
 {"" if MANY else '<div class="pb"></div>'}
-<div class="sec" style="padding-top:{26 if MANY else 34}px"><h2>Across all batches</h2><p class="sub">Applied to all {len(prog)} batches ({PT["n"]:,} students, revenue {lakh(PT["rev"])}): High case is <b>{lakh(PT["high"])} ({pct(100 * PT["high"] / PT["rev"])} of revenue)</b>; worst case {lakh(PT["worst"])} ({pct(100 * PT["worst"] / PT["rev"])}).</p>
+<div class="sec" style="padding-top:{26 if MANY else 34}px"><h2>Across all concluded batches</h2><p class="sub">Applied to all {len(prog)} concluded batches ({PT["n"]:,} students, revenue {lakh(PT["rev"])}): High case is <b>{lakh(PT["high"])} ({pct(100 * PT["high"] / PT["rev"])} of revenue)</b>; worst case {lakh(PT["worst"])} ({pct(100 * PT["worst"] / PT["rev"])}).</p>
   {chart_scale()}</div>
 
 <div class="sec"><h2>Safeguards built in</h2>
@@ -430,15 +451,15 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
    <div class="card"><div class="ic">✓</div><b>Student confirms</b><span>Explicit consent, stored with time.</span></div>
    <div class="card"><div class="ic">▤</div><b>Every claim logged</b><span>Each request is a sheet row with a status.</span></div>
    <div class="card"><div class="ic">⚖</div><b>Team reviews</b><span>Can reject; Miles refunded automatically.</span></div>
-   <div class="card"><div class="ic">₹</div><b>Fixed Mile value</b><span>All rewards priced at {mpr} Miles = ₹1.</span></div>
+   <div class="card"><div class="ic">₹</div><b>Prices tied to max Miles</b><span>Each reward is a fixed share of the batch maximum.</span></div>
    <div class="card"><div class="ic">↻</div><b>Daily refresh</b><span>Balances and cost update every morning.</span></div>
    <div class="card"><div class="ic">⌁</div><b>Live cost model</b><span>Test any assumption instantly; save it.</span></div>
   </div></div>
 
 <div class="sec"><h2>Watch-outs, handled</h2>
   <div class="risk">
-   <div class="rk"><b>{len(unconfirmed)} premium rewards have estimated costs</b>{esc(unc_names[:1].upper() + unc_names[1:])}. <em>Only {unc_min:,}+ Miles reach them ({sum(1 for x in allm if x >= unc_min)} student{"" if sum(1 for x in allm if x >= unc_min) == 1 else "s"} here).</em></div>
-   <div class="rk"><b>Miles keep growing</b>Cost rises with engagement. <em>Capped at ₹{1 / mpr:.2f} per Mile.</em></div>
+   <div class="rk"><b>{len(unconfirmed)} premium rewards have estimated costs</b>{esc(unc_names[:1].upper() + unc_names[1:])}. <em>Priced at 73% of max or more: {unc_reach:,} of {N:,} students here reach them.</em></div>
+   <div class="rk"><b>Miles keep growing</b>Cost rises with engagement. <em>Earning is capped per week; prices follow the batch maximum.</em></div>
    <div class="rk"><b>Redemption rate is unknown</b>No history yet. <em>Ceiling holds at any rate; tracked from day one.</em></div>
    <div class="rk"><b>Physical rewards add logistics</b>Gear needs vendors. <em>Digital and experience rewards launch first.</em></div>
   </div></div>
@@ -451,11 +472,11 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
    <div class="st"><i>4</i><b>Track monthly</b><span>cost vs ceiling</span></div>
   </div></div>
 
-{"" if not MANY else f'<div class="sec" style="padding-top:18px;break-inside:auto"><h2>Batch detail</h2><p class="sub">Simulated batches. Fee is per student; revenue is fee x students.</p><table class="cat det"><tr><th>Batch</th><th>Students</th><th>Avg Miles</th><th>Can claim</th><th>Fee</th><th>High</th><th>% rev</th><th>Worst</th><th>% rev</th></tr>{detail_rows}</table></div>'}
+{"" if not MANY else f'<div class="sec" style="padding-top:18px;break-inside:auto"><h2>Batch detail</h2><p class="sub">Simulated batches. Fee is per student; revenue is fee x students.</p><table class="cat det"><tr><th>Batch</th><th>Students</th><th>Avg Miles</th><th>Can claim</th><th>Fee</th><th>Max Miles</th><th>Level</th><th>High</th><th>% rev</th><th>Worst</th><th>% rev</th></tr>{detail_rows}</table></div>'}
 <div class="pb"></div>
 <div class="sec" style="padding-top:30px"><h2>Reward catalogue</h2>
-  <p class="sub">{n_rewards} rewards. Miles are priced at {mpr} Miles = ₹1 of cost to Masai. <em class="est">estimate</em> = cost still to be confirmed.</p>
-  <table class="cat"><tr><th>Reward</th><th>Miles</th><th>Cost to Masai</th><th>How it is availed</th></tr>{cat_html}</table></div>
+  <p class="sub">{n_rewards} rewards, priced as a share of the batch maximum (Miles shown for a 35,500-Mile batch, e.g. 26 weeks). Rewards at 70%+ keep their share in every batch; the rest scale with the batch price level. <em class="est">estimate</em> = cost still to be confirmed.</p>
+  <table class="cat"><tr><th>Reward</th><th>% of max</th><th>Miles</th><th>Cost to Masai</th><th>How it is availed</th></tr>{cat_html}</table></div>
 
 <div class="pb"></div>
 <div class="sec" style="padding-top:30px"><h2>How rewards are availed</h2>
@@ -468,7 +489,7 @@ html_doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
    <li>Items shipped need a full delivery address (and a size for apparel). Subscriptions are reimbursed against an invoice.</li>
    <li>Hackathon, placement drive, company interview and mentor sessions depend on the event taking place and on availability. They are not a job guarantee.</li></ul></div></div>
 
-<p class="foot">Retrospective simulation on concluded batches. Data: Metabase export, 16 Oct 2026. No streak boost. Costs are cost to Masai per reward. Method: docs/cost_calculation.md.</p>
+<p class="foot">Retrospective simulation on concluded batches. Data: Metabase exports, Oct 2026. No streak boost. Each reward priced as a share of the batch maximum Miles; price level fitted per batch from its fee (aim {a.target:g}% of revenue). Method: docs/rate_card_method.md.</p>
 </div></body></html>"""
 
 out = Path(a.out)
