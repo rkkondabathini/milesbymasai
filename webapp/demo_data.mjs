@@ -3,8 +3,8 @@ const iso = (d) => d.toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
 
 export const DEMO_LOGINS = [
-  { label: "Active learner (streak, 6,000 Miles to spend)", phone: "9000000001", email: "aarav.demo@example.com" },
-  { label: "New learner (650 Miles)", phone: "9000000002", email: "meera.demo@example.com" },
+  { name: "Aarav Mehta", label: "Active learner · 4-week streak · 6,000 Miles to spend", phone: "9000000001", email: "aarav.demo@example.com" },
+  { name: "Meera Iyer", label: "New learner · 650 Miles", phone: "9000000002", email: "meera.demo@example.com" },
 ];
 
 export function demoSource(base) {
